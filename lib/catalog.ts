@@ -47,21 +47,31 @@ function convertLegacyUsd(catalog: Catalog): Catalog {
   };
 }
 
+function mergeMissingSeedProducts(catalog: Catalog): Catalog {
+  const existingIds = new Set(catalog.products.map((item) => item.id));
+  const missing = seedCatalog.products.filter((item) => !existingIds.has(item.id));
+  if (missing.length === 0) return catalog;
+  return { ...catalog, products: [...catalog.products, ...missing] };
+}
+
 export async function readCatalog(): Promise<Catalog> {
   if (cachedCatalog) return cachedCatalog;
 
   await ensureCatalogFile();
   const raw = await readFile(catalogPath, "utf8");
   const parsed = JSON.parse(raw) as Catalog;
-  const catalog: Catalog = convertLegacyUsd({
-    settings: {
-      whatsapp: parsed.settings?.whatsapp ?? "",
-      shopNote: parsed.settings?.shopNote ?? seedCatalog.settings.shopNote,
-    },
-    products: Array.isArray(parsed.products) ? parsed.products : [],
-  });
+  const rawCount = Array.isArray(parsed.products) ? parsed.products.length : 0;
+  const catalog: Catalog = convertLegacyUsd(
+    mergeMissingSeedProducts({
+      settings: {
+        whatsapp: parsed.settings?.whatsapp ?? "",
+        shopNote: parsed.settings?.shopNote ?? seedCatalog.settings.shopNote,
+      },
+      products: Array.isArray(parsed.products) ? parsed.products : [],
+    })
+  );
 
-  if (looksLikeUsdCatalog(parsed.products ?? [])) {
+  if (looksLikeUsdCatalog(parsed.products ?? []) || catalog.products.length !== rawCount) {
     await writeCatalog(catalog);
   }
 

@@ -88,6 +88,13 @@ export function incompatibilityReason(
     }
   }
 
+  if (product.category === "psu") {
+    const recommended = estimatePsuWattage(selected);
+    if (recommended && product.specs.wattage && product.specs.wattage < recommended) {
+      return `قدرة ${product.specs.wattage}W أقل من المطلوب تقريباً (${recommended}W)`;
+    }
+  }
+
   return null;
 }
 

@@ -262,6 +262,25 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
             />
           </div>
         )}
+        {product.category === "psu" && (
+          <div className="grid gap-2">
+            <Label htmlFor="product-psu-wattage">قدرة مزود الطاقة (W)</Label>
+            <Input
+              id="product-psu-wattage"
+              type="number"
+              min={0}
+              dir="ltr"
+              placeholder="750"
+              value={product.specs.wattage ?? ""}
+              onChange={(event) =>
+                updateSpec(
+                  "wattage",
+                  event.target.value === "" ? undefined : Number(event.target.value)
+                )
+              }
+            />
+          </div>
+        )}
         {(product.category === "ram" ||
           product.category === "storage" ||
           product.category === "gpu") && (

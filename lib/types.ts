@@ -5,6 +5,7 @@ export const CATEGORIES = [
   "gpu",
   "storage",
   "cooler",
+  "psu",
   "case",
 ] as const;
 

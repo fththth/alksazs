@@ -195,10 +195,10 @@ export function BuildSummary({
             <p className="mt-4 text-sm text-emerald-700">القطع المختارة متوافقة لحد الآن.</p>
           ) : null}
 
-          {psu ? (
+          {psu && !selected.psu ? (
             <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
               <Zap className="size-4 text-primary" />
-              يفضّل مزود طاقة حوالي {psu} واط
+              يفضّل مزود طاقة حوالي {psu} واط على الأقل
             </p>
           ) : null}
 

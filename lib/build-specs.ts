@@ -19,7 +19,8 @@ export function productSpecEntries(product: Product) {
   if (specs.speed) entries.push({ label: "السرعة", value: specs.speed });
   if (specs.tdp !== undefined) entries.push({ label: "TDP", value: `${specs.tdp}W` });
   if (specs.wattage !== undefined) {
-    entries.push({ label: "الاستهلاك", value: `${specs.wattage}W` });
+    const label = product.category === "psu" ? "القدرة" : "الاستهلاك";
+    entries.push({ label, value: `${specs.wattage}W` });
   }
 
   return entries;

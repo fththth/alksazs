@@ -293,7 +293,7 @@ export function DashboardApp() {
             ))}
           </div>
           <div className="relative w-full lg:max-w-xs">
-            <Search className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-zinc-500" />
+            <Search className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}

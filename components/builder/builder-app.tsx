@@ -305,7 +305,7 @@ export function BuilderApp() {
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-muted-foreground">{selectedCount} من ٧ قطع</p>
+            <p className="text-xs text-muted-foreground">{selectedCount} من {CATEGORY_ORDER.length} قطع</p>
             <p className="font-heading text-xl font-bold text-primary" dir="ltr">
               {formatPrice(total)}
             </p>

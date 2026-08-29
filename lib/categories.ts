@@ -5,6 +5,7 @@ import {
   Gpu,
   HardDrive,
   Fan,
+  Zap,
   Box,
   type LucideIcon,
 } from "lucide-react";
@@ -50,6 +51,12 @@ export const CATEGORY_META: Record<
     icon: Fan,
     hint: "المعالجات القوية تحتاج تبريد أفضل حتى ما ترتفع الحرارة.",
   },
+  psu: {
+    label: "مزود الطاقة",
+    short: "PSU",
+    icon: Zap,
+    hint: "اختر واط كافي للمعالج وكرت الشاشة — ٦٥٠W للمتوسط و ٨٥٠W للتجميعات القوية.",
+  },
   case: {
     label: "الكيس",
     short: "Case",
@@ -65,5 +72,6 @@ export const CATEGORY_ORDER: Category[] = [
   "gpu",
   "storage",
   "cooler",
+  "psu",
   "case",
 ];
