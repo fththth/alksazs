@@ -1,6 +1,5 @@
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import { formatPrice } from "@/lib/format";
-import { savePrintBuild } from "@/lib/print-storage";
 import type { CompatIssue } from "@/lib/compatibility";
 import type { Category, Product } from "@/lib/types";
 
@@ -525,15 +524,21 @@ export function printBuildSpecs(input: BuildExportInput) {
     logoUrl: `${origin}/brand/mark.png`,
     splashUrl: `${origin}/brand/splash.jpg`,
   });
+  const printableHtml = withPrintScript(html);
 
-  try {
-    savePrintBuild(input);
-    const popup = window.open("/print", "_blank");
-    if (popup) return true;
-  } catch {
-    // sessionStorage blocked — use iframe fallback
+  // Blob tab: HTML carries all build data — no sessionStorage needed.
+  const blob = new Blob([printableHtml], { type: "text/html;charset=utf-8" });
+  const blobUrl = URL.createObjectURL(blob);
+  const popup = window.open(blobUrl, "_blank");
+
+  if (popup) {
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 120_000);
+    return true;
   }
 
+  URL.revokeObjectURL(blobUrl);
+
+  // Same-page iframe fallback when popups are blocked (preview environments).
   return printInHiddenIframe(html);
 }
 
