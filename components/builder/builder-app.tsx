@@ -236,10 +236,7 @@ export function BuilderApp() {
                           <p className="mt-2 text-xs text-rose-300">{reason}</p>
                         ) : null}
                       </div>
-                      <p
-                        className="shrink-0 font-heading text-xl font-bold text-amber-200"
-                        dir="ltr"
-                      >
+                      <p className="shrink-0 font-heading text-xl font-bold text-amber-200">
                         {formatPrice(product.price)}
                       </p>
                     </button>
@@ -274,7 +271,7 @@ export function BuilderApp() {
             <p className="text-xs text-zinc-400">
               {selectedCount} من ٧ قطع
             </p>
-            <p className="font-heading text-xl font-bold text-amber-200" dir="ltr">
+            <p className="font-heading text-xl font-bold text-amber-200">
               {formatPrice(total)}
             </p>
           </div>

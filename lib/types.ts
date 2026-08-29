@@ -29,6 +29,7 @@ export type Product = {
   name: string;
   brand: string;
   description: string;
+  /** السعر بالدينار العراقي */
   price: number;
   stock: number;
   available: boolean;

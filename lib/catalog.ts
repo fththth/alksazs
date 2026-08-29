@@ -15,17 +15,49 @@ async function ensureCatalogFile() {
   }
 }
 
+function looksLikeUsdCatalog(products: Product[]) {
+  if (products.length === 0) return false;
+  return products.every((item) => item.price < 10_000);
+}
+
+function toIqd(usd: number) {
+  return Math.round((usd * 1310) / 1000) * 1000;
+}
+
+function convertLegacyUsd(catalog: Catalog): Catalog {
+  if (!looksLikeUsdCatalog(catalog.products)) return catalog;
+  return {
+    settings: {
+      ...catalog.settings,
+      shopNote: catalog.settings.shopNote.replaceAll(
+        "بالدولار الأمريكي",
+        "بالدينار العراقي"
+      ),
+    },
+    products: catalog.products.map((item) => ({
+      ...item,
+      price: toIqd(item.price),
+    })),
+  };
+}
+
 export async function readCatalog(): Promise<Catalog> {
   await ensureCatalogFile();
   const raw = await readFile(catalogPath, "utf8");
   const parsed = JSON.parse(raw) as Catalog;
-  return {
+  const catalog: Catalog = convertLegacyUsd({
     settings: {
       whatsapp: parsed.settings?.whatsapp ?? "",
       shopNote: parsed.settings?.shopNote ?? seedCatalog.settings.shopNote,
     },
     products: Array.isArray(parsed.products) ? parsed.products : [],
-  };
+  });
+
+  if (looksLikeUsdCatalog(parsed.products ?? [])) {
+    await writeCatalog(catalog);
+  }
+
+  return catalog;
 }
 
 export async function writeCatalog(catalog: Catalog) {

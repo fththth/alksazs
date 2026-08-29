@@ -99,7 +99,7 @@ export function BuildSummary({
               </div>
               {item ? (
                 <div className="flex shrink-0 items-center gap-1">
-                  <span className="text-sm text-amber-200" dir="ltr">
+                  <span className="text-sm text-amber-200">
                     {formatPrice(item.price)}
                   </span>
                   <ClearIconButton onClick={() => onClearPart(key)} />
@@ -139,12 +139,12 @@ export function BuildSummary({
       <div className="mt-5 border-t border-white/8 pt-4">
         <div className="flex items-end justify-between">
           <span className="text-sm text-zinc-400">السعر الإجمالي</span>
-          <span className="font-heading text-3xl font-bold text-amber-200" dir="ltr">
+          <span className="font-heading text-3xl font-bold text-amber-200">
             {formatPrice(total)}
           </span>
         </div>
         <p className="mt-1 text-xs text-zinc-500">
-          {selectedCount} من ٧ قطع — الأسعار بالدولار
+          {selectedCount} من ٧ قطع — الأسعار بالدينار العراقي
         </p>
       </div>
 
