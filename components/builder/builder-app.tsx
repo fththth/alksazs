@@ -60,6 +60,8 @@ export function BuilderApp() {
   });
 
   function pick(product: Product) {
+    if (product.stock <= 0) return;
+    if (incompatibilityReason(product, selected)) return;
     setSelection((current) => ({ ...current, [product.category]: product.id }));
   }
 
@@ -196,44 +198,64 @@ export function BuilderApp() {
               {visible.map((product) => {
                 const chosen = selection[product.category] === product.id;
                 const reason = incompatibilityReason(product, selected);
+                const incompatible = Boolean(reason);
                 const out = product.stock <= 0;
+                const blocked = out || incompatible;
                 return (
                   <li key={product.id}>
                     <button
                       type="button"
-                      disabled={out}
+                      disabled={blocked}
                       onClick={() => pick(product)}
+                      aria-disabled={blocked}
                       className={cn(
-                        "flex w-full flex-col gap-3 rounded-xl border p-4 text-right transition sm:flex-row sm:items-center sm:justify-between",
-                        chosen
+                        "relative flex w-full flex-col gap-3 overflow-hidden rounded-xl border p-4 text-right transition sm:flex-row sm:items-center sm:justify-between",
+                        chosen && !incompatible
                           ? "border-primary/40 bg-primary/5 shadow-sm"
-                          : "border-border bg-background hover:border-primary/25 hover:bg-muted/30",
-                        out && "opacity-50"
+                          : incompatible
+                            ? "cursor-not-allowed border-destructive bg-destructive/10"
+                            : "border-border bg-background hover:border-primary/25 hover:bg-muted/30",
+                        out && !incompatible && "opacity-50"
                       )}
                     >
-                      <div className="min-w-0">
+                      {incompatible ? (
+                        <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive px-3 py-2 text-sm font-semibold text-white sm:absolute sm:inset-x-4 sm:top-4 sm:w-auto">
+                          <AlertTriangle className="size-4 shrink-0" />
+                          غير متوافق
+                        </div>
+                      ) : null}
+                      <div className={cn("min-w-0 w-full", incompatible && "mt-10 sm:mt-12")}>
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-heading text-base font-semibold text-foreground">
+                          <p
+                            className={cn(
+                              "font-heading text-base font-semibold",
+                              incompatible ? "text-destructive" : "text-foreground"
+                            )}
+                          >
                             {product.brand} {product.name}
                           </p>
-                          {chosen ? (
+                          {chosen && !incompatible ? (
                             <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
                               <Check />
                               مختار
                             </Badge>
                           ) : null}
-                          {reason ? (
-                            <Badge variant="destructive">
-                              <AlertTriangle />
-                              تعارض
-                            </Badge>
-                          ) : null}
                           {out ? <Badge variant="outline">نفد</Badge> : null}
                         </div>
-                        <p className="mt-1 text-sm leading-7 text-muted-foreground">
+                        <p
+                          className={cn(
+                            "mt-1 text-sm leading-7",
+                            incompatible ? "text-destructive/80" : "text-muted-foreground"
+                          )}
+                        >
                           {product.description}
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                        <div
+                          className={cn(
+                            "mt-2 flex flex-wrap gap-2 text-xs",
+                            incompatible ? "text-destructive/70" : "text-muted-foreground"
+                          )}
+                        >
                           {product.specs.socket ? <span>سوكت {product.specs.socket}</span> : null}
                           {product.specs.ramType ? <span>{product.specs.ramType}</span> : null}
                           {product.specs.formFactor ? <span>{product.specs.formFactor}</span> : null}
@@ -242,11 +264,14 @@ export function BuilderApp() {
                           <span>{formatStock(product.stock)}</span>
                         </div>
                         {reason ? (
-                          <p className="mt-2 text-xs text-destructive">{reason}</p>
+                          <p className="mt-2 text-xs font-medium text-destructive">{reason}</p>
                         ) : null}
                       </div>
                       <p
-                        className="shrink-0 font-heading text-lg font-bold text-primary"
+                        className={cn(
+                          "shrink-0 font-heading text-lg font-bold",
+                          incompatible ? "text-destructive/70" : "text-primary"
+                        )}
                         dir="ltr"
                       >
                         {formatPrice(product.price)}
