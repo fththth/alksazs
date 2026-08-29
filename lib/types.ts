@@ -47,4 +47,4 @@ export type Catalog = {
   products: Product[];
 };
 
-export type BuildSelection = Partial<Record<Category, string>>;
+export type BuildSelection = Partial<Record<Category, string | string[]>>;

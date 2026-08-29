@@ -2,17 +2,22 @@
 
 import { useEffect, useRef } from "react";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
-import type { Category, Product } from "@/lib/types";
+import {
+  categoryHasSelection,
+  filledCategoryCount,
+  type SelectedBuild,
+} from "@/lib/build-selection-utils";
+import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Props = {
   category: Category;
-  selected: Partial<Record<Category, Product>>;
+  selected: SelectedBuild;
   onSelect: (category: Category) => void;
 };
 
 export function CategoryTabs({ category, selected, onSelect }: Props) {
-  const doneCount = CATEGORY_ORDER.filter((key) => selected[key]).length;
+  const doneCount = filledCategoryCount(selected, CATEGORY_ORDER);
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -35,7 +40,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
 
       <div className="flex items-center gap-1">
         {CATEGORY_ORDER.map((key) => {
-          const done = Boolean(selected[key]);
+          const done = categoryHasSelection(selected, key);
           const active = category === key;
           return (
             <button
@@ -60,7 +65,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
         {CATEGORY_ORDER.map((key) => {
           const item = CATEGORY_META[key];
           const Icon = item.icon;
-          const chosen = selected[key];
+          const chosen = categoryHasSelection(selected, key);
           const active = category === key;
 
           return (
@@ -88,7 +93,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
         {CATEGORY_ORDER.map((key) => {
           const item = CATEGORY_META[key];
           const Icon = item.icon;
-          const chosen = selected[key];
+          const chosen = categoryHasSelection(selected, key);
           const active = category === key;
 
           return (

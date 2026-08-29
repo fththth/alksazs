@@ -6,6 +6,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import {
+  categoryHasSelection,
+  getProductsForCategory,
+  isMultiSelectCategory,
+  type SelectedBuild,
+} from "@/lib/build-selection-utils";
+import {
   buildSummaryPlainText,
   copyBuildSpecs,
   isBuildComplete,
@@ -14,7 +20,7 @@ import {
   productFullName,
 } from "@/lib/build-specs";
 import { formatPrice } from "@/lib/format";
-import type { Category, Product } from "@/lib/types";
+import type { Category } from "@/lib/types";
 import type { CompatIssue } from "@/lib/compatibility";
 
 const TOTAL_PARTS = CATEGORY_ORDER.length;
@@ -35,20 +41,23 @@ function ClearIconButton({ onClick }: { onClick: (event: MouseEvent) => void }) 
 function PartsList({
   selected,
   onClearPart,
+  onRemoveProduct,
   onEditCategory,
   allowClear,
 }: {
-  selected: Partial<Record<Category, Product>>;
+  selected: SelectedBuild;
   onClearPart?: (category: Category) => void;
+  onRemoveProduct?: (category: Category, productId: string) => void;
   onEditCategory?: (category: Category) => void;
   allowClear: boolean;
 }) {
   return (
     <ul className="space-y-2">
       {CATEGORY_ORDER.map((key) => {
-        const item = selected[key];
+        const items = getProductsForCategory(selected, key);
         const meta = CATEGORY_META[key];
         const Icon = meta.icon;
+        const multi = isMultiSelectCategory(key);
 
         return (
           <li key={key}>
@@ -61,22 +70,59 @@ function PartsList({
                 <p className="flex items-center gap-1.5 text-[11px] font-medium text-primary">
                   <Icon className="size-3.5 shrink-0" />
                   {meta.label}
+                  {multi && items.length > 0 ? (
+                    <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] text-primary">
+                      {items.length}
+                    </span>
+                  ) : null}
                 </p>
-                {item ? (
-                  <p className="mt-0.5 text-sm font-semibold leading-6 text-foreground break-words">
-                    {productFullName(item)}
-                  </p>
+                {items.length > 0 ? (
+                  multi ? (
+                    <ul className="mt-1.5 space-y-1">
+                      {items.map((item) => (
+                        <li
+                          key={item.id}
+                          className="flex items-start justify-between gap-2 text-sm font-semibold leading-6 text-foreground"
+                        >
+                          <span className="min-w-0 break-words">{productFullName(item)}</span>
+                          {allowClear && onRemoveProduct ? (
+                            <ClearIconButton
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onRemoveProduct(key, item.id);
+                              }}
+                            />
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-0.5 text-sm font-semibold leading-6 text-foreground break-words">
+                      {productFullName(items[0]!)}
+                    </p>
+                  )
                 ) : (
                   <p className="mt-0.5 text-sm text-muted-foreground">اضغط للاختيار</p>
                 )}
               </div>
-              {allowClear && item && onClearPart ? (
+              {allowClear && items.length > 0 && onClearPart && !multi ? (
                 <ClearIconButton
                   onClick={(event) => {
                     event.stopPropagation();
                     onClearPart(key);
                   }}
                 />
+              ) : allowClear && items.length > 0 && onClearPart && multi ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onClearPart(key);
+                  }}
+                  className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  مسح
+                </button>
               ) : (
                 <span className="text-xs text-muted-foreground">تغيير</span>
               )}
@@ -89,13 +135,14 @@ function PartsList({
 }
 
 type Props = {
-  selected: Partial<Record<Category, Product>>;
+  selected: SelectedBuild;
   total: number;
   issues: CompatIssue[];
   psu: number | null;
   selectedCount: number;
   whatsapp: string;
   onClearPart: (category: Category) => void;
+  onRemoveProduct: (category: Category, productId: string) => void;
   onReset: () => void;
   onEditCategory: (category: Category) => void;
   embedded?: boolean;
@@ -109,6 +156,7 @@ export function BuildSummary({
   selectedCount,
   whatsapp,
   onClearPart,
+  onRemoveProduct,
   onReset,
   onEditCategory,
   embedded = false,
@@ -188,6 +236,7 @@ export function BuildSummary({
               selected={selected}
               allowClear
               onClearPart={onClearPart}
+              onRemoveProduct={onRemoveProduct}
               onEditCategory={onEditCategory}
             />
           </div>
@@ -229,6 +278,7 @@ export function BuildSummary({
             <PartsList
               selected={selected}
               onClearPart={onClearPart}
+              onRemoveProduct={onRemoveProduct}
               onEditCategory={onEditCategory}
               allowClear
             />
@@ -247,7 +297,7 @@ export function BuildSummary({
             <p className="mt-4 text-sm text-emerald-700">القطع المختارة متوافقة لحد الآن.</p>
           ) : null}
 
-          {psu && !selected.psu ? (
+          {psu && !categoryHasSelection(selected, "psu") ? (
             <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
               <Zap className="size-4 text-primary" />
               يفضّل مزود طاقة حوالي {psu} واط على الأقل

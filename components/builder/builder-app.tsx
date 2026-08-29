@@ -17,6 +17,17 @@ import { CategoryTabs } from "@/components/builder/category-tabs";
 import { ProductPickerCard } from "@/components/builder/product-picker-card";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import {
+  categoryHasSelection,
+  filledCategoryCount,
+  getProductsForCategory,
+  getSelectionIds,
+  isMultiSelectCategory,
+  isProductSelected,
+  removeCategorySelection,
+  removeProductFromSelection,
+  setCategoryIds,
+} from "@/lib/build-selection-utils";
+import {
   buildIssues,
   buildTotal,
   estimatePsuWattage,
@@ -46,7 +57,9 @@ export function BuilderApp() {
   const total = buildTotal(selected);
   const issues = buildIssues(products, selection);
   const psu = estimatePsuWattage(selected);
-  const selectedCount = Object.values(selected).filter(Boolean).length;
+  const selectedCount = filledCategoryCount(selected, CATEGORY_ORDER);
+  const categoryProducts = getProductsForCategory(selected, category);
+  const isMulti = isMultiSelectCategory(category);
 
   const visible = products.filter((item) => {
     if (item.category !== category) return false;
@@ -58,6 +71,17 @@ export function BuilderApp() {
   function pick(product: Product) {
     if (product.stock <= 0) return;
 
+    if (isMultiSelectCategory(product.category)) {
+      const ids = getSelectionIds(selection, product.category);
+      if (ids.includes(product.id)) {
+        setSelection(removeProductFromSelection(selection, product.category, product.id));
+        return;
+      }
+      if (incompatibilityReason(product, selected)) return;
+      setSelection(setCategoryIds(selection, product.category, [...ids, product.id]));
+      return;
+    }
+
     if (selection[product.category] === product.id) {
       clearPart(product.category);
       return;
@@ -68,10 +92,11 @@ export function BuilderApp() {
     const next = { ...selection, [product.category]: product.id };
     setSelection(next);
 
+    const nextSelected = getSelectedProducts(products, next);
     const idx = CATEGORY_ORDER.indexOf(product.category);
     for (let i = idx + 1; i < CATEGORY_ORDER.length; i++) {
       const key = CATEGORY_ORDER[i];
-      if (!next[key]) {
+      if (!categoryHasSelection(nextSelected, key)) {
         setCategory(key);
         setQuery("");
         break;
@@ -86,11 +111,11 @@ export function BuilderApp() {
   }
 
   function clearPart(key: Category) {
-    setSelection((current) => {
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
+    setSelection(removeCategorySelection(selection, key));
+  }
+
+  function removeProduct(key: Category, productId: string) {
+    setSelection(removeProductFromSelection(selection, key, productId));
   }
 
   function resetBuild() {
@@ -221,17 +246,49 @@ export function BuilderApp() {
             </div>
           </div>
 
-          {selected[category] ? (
-            <div className="mt-3 flex items-start justify-between gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm sm:mt-4">
-              <p className="min-w-0 flex-1 leading-6 text-foreground">
-                <span className="text-primary">المختار: </span>
-                <span className="font-semibold break-words">
-                  {selected[category]!.brand} {selected[category]!.name}
-                </span>
-              </p>
-              <Button variant="ghost" size="sm" className="shrink-0" onClick={() => clearPart(category)}>
-                إلغاء
-              </Button>
+          {categoryProducts.length > 0 ? (
+            <div className="mt-3 space-y-2 sm:mt-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-primary">
+                  {isMulti ? `المختار (${categoryProducts.length})` : "المختار"}
+                </p>
+                <Button variant="ghost" size="sm" className="shrink-0" onClick={() => clearPart(category)}>
+                  {isMulti ? "مسح الكل" : "إلغاء"}
+                </Button>
+              </div>
+              {isMulti ? (
+                <ul className="space-y-1.5">
+                  {categoryProducts.map((item) => (
+                    <li
+                      key={item.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-sm"
+                    >
+                      <span className="min-w-0 flex-1 font-semibold break-words">
+                        {item.brand} {item.name}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={() => removeProduct(category, item.id)}
+                      >
+                        إزالة
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm">
+                  <span className="font-semibold break-words">
+                    {categoryProducts[0]!.brand} {categoryProducts[0]!.name}
+                  </span>
+                </div>
+              )}
+              {isMulti ? (
+                <p className="text-xs text-muted-foreground">
+                  اضغط أي بطاقة لإضافة قطعة أخرى أو إزالتها.
+                </p>
+              ) : null}
             </div>
           ) : null}
 
@@ -243,7 +300,7 @@ export function BuilderApp() {
           ) : (
             <ul className="mt-4 grid gap-2 sm:gap-3">
               {visible.map((product) => {
-                const chosen = selection[product.category] === product.id;
+                const chosen = isProductSelected(selection, product.category, product.id);
                 const reason = incompatibilityReason(product, selected);
                 const incompatible = Boolean(reason);
                 const out = product.stock <= 0;
@@ -274,6 +331,7 @@ export function BuilderApp() {
               selectedCount={selectedCount}
               whatsapp={catalog.settings.whatsapp}
               onClearPart={clearPart}
+              onRemoveProduct={removeProduct}
               onReset={resetBuild}
               onEditCategory={goToCategory}
             />
@@ -294,7 +352,7 @@ export function BuilderApp() {
                 key={key}
                 className={cn(
                   "h-1 flex-1 rounded-full",
-                  selected[key] ? "bg-emerald-500" : "bg-muted"
+                  categoryHasSelection(selected, key) ? "bg-emerald-500" : "bg-muted"
                 )}
               />
             ))}
@@ -341,6 +399,7 @@ export function BuilderApp() {
               selectedCount={selectedCount}
               whatsapp={catalog.settings.whatsapp}
               onClearPart={clearPart}
+              onRemoveProduct={removeProduct}
               onReset={resetBuild}
               onEditCategory={goToCategory}
             />

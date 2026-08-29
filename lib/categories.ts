@@ -34,7 +34,7 @@ export const CATEGORY_META: Record<
     tabLabel: "الرام",
     short: "RAM",
     icon: MemoryStick,
-    hint: "١٦ غيغا حد أدنى مريح، ٣٢ غيغا أفضل للألعاب والمونتاج.",
+    hint: "تقدر تضيف أكثر من قطعة رام. اضغط البطاقة للإضافة أو الإزالة.",
   },
   gpu: {
     label: "كرت الشاشة",
@@ -48,7 +48,7 @@ export const CATEGORY_META: Record<
     tabLabel: "تخزين",
     short: "Storage",
     icon: HardDrive,
-    hint: "NVMe أسرع من SATA. تيرا يكفي للبداية، اثنين أريح.",
+    hint: "تقدر تضيف أكثر من قرص — SSD سريع + HDD للتخزين مثلاً.",
   },
   cooler: {
     label: "الكولر",

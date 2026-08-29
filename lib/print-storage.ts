@@ -1,8 +1,8 @@
+import type { SelectedBuild } from "@/lib/build-selection-utils";
 import type { CompatIssue } from "@/lib/compatibility";
-import type { Category, Product } from "@/lib/types";
 
 export type PrintBuildPayload = {
-  selected: Partial<Record<Category, Product>>;
+  selected: SelectedBuild;
   total: number;
   psu: number | null;
   issues: CompatIssue[];

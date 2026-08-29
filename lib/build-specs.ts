@@ -1,8 +1,15 @@
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
+import {
+  categoryHasSelection,
+  filledCategoryCount,
+  formatCategorySelection,
+  getProductsForCategory,
+  type SelectedBuild,
+} from "@/lib/build-selection-utils";
 import { formatPrice } from "@/lib/format";
 import { PRINT_MESSAGE, PRINT_READY } from "@/lib/print-storage";
 import type { CompatIssue } from "@/lib/compatibility";
-import type { Category, Product } from "@/lib/types";
+import type { Product } from "@/lib/types";
 
 export function productFullName(product: Product) {
   return `${product.brand} ${product.name}`.trim();
@@ -27,18 +34,18 @@ export function productSpecEntries(product: Product) {
 }
 
 type BuildExportInput = {
-  selected: Partial<Record<Category, Product>>;
+  selected: SelectedBuild;
   total: number;
   psu: number | null;
   issues: CompatIssue[];
 };
 
-export function isBuildComplete(selected: Partial<Record<Category, Product>>) {
-  return CATEGORY_ORDER.every((key) => Boolean(selected[key]));
+export function isBuildComplete(selected: SelectedBuild) {
+  return CATEGORY_ORDER.every((key) => categoryHasSelection(selected, key));
 }
 
 export function isBuildReady(
-  selected: Partial<Record<Category, Product>>,
+  selected: SelectedBuild,
   issues: CompatIssue[]
 ) {
   return isBuildComplete(selected) && issues.length === 0;
@@ -61,12 +68,11 @@ export function buildSummaryPlainText({ selected, total, psu, issues }: BuildExp
   ];
 
   for (const key of CATEGORY_ORDER) {
-    const item = selected[key];
     const label = CATEGORY_META[key].label;
-    if (!item) {
+    if (!categoryHasSelection(selected, key)) {
       lines.push(`${label}: —`);
     } else {
-      lines.push(`${label}: ${productFullName(item)}`);
+      lines.push(`${label}: ${formatCategorySelection(selected, key)}`);
     }
   }
 
@@ -74,7 +80,7 @@ export function buildSummaryPlainText({ selected, total, psu, issues }: BuildExp
   lines.push("──────────────────────────────");
   lines.push(`السعر الإجمالي: ${formatPrice(total)}`);
 
-  if (psu && !selected.psu) {
+  if (psu && !categoryHasSelection(selected, "psu")) {
     lines.push(`مزود الطاقة المقترح: ${psu}W`);
   }
 
@@ -97,10 +103,10 @@ export function buildPrintHtml(
   assets: { logoUrl: string; splashUrl: string }
 ) {
   const rowsHtml = CATEGORY_ORDER.map((key) => {
-    const item = selected[key];
+    const items = getProductsForCategory(selected, key);
     const meta = CATEGORY_META[key];
 
-    if (!item) {
+    if (items.length === 0) {
       return `
         <tr>
           <td class="cat">${meta.label}</td>
@@ -109,17 +115,24 @@ export function buildPrintHtml(
       `;
     }
 
-    const specsInline = productSpecEntries(item)
-      .map((s) => `${s.label}: ${s.value}`)
-      .join(" · ");
+    const namesHtml = items
+      .map((item) => {
+        const specsInline = productSpecEntries(item)
+          .map((s) => `${s.label}: ${s.value}`)
+          .join(" · ");
+        return `
+          <div class="part">
+            <strong>${productFullName(item)}</strong>
+            ${specsInline ? `<span class="specs">${specsInline}</span>` : ""}
+          </div>
+        `;
+      })
+      .join("");
 
     return `
       <tr>
         <td class="cat">${meta.label}</td>
-        <td class="name">
-          <strong>${productFullName(item)}</strong>
-          ${specsInline ? `<span class="specs">${specsInline}</span>` : ""}
-        </td>
+        <td class="name">${namesHtml}</td>
       </tr>
     `;
   }).join("");
@@ -129,7 +142,7 @@ export function buildPrintHtml(
       ? `<aside class="issues"><ul>${issues.map((i) => `<li>${i.message}</li>`).join("")}</ul></aside>`
       : "";
 
-  const selectedCount = CATEGORY_ORDER.filter((k) => selected[k]).length;
+  const selectedCount = filledCategoryCount(selected, CATEGORY_ORDER);
 
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -206,6 +219,7 @@ export function buildPrintHtml(
       font-weight: 700;
       color: #0f2430;
     }
+    .part + .part { margin-top: 4px; padding-top: 4px; border-top: 1px dashed #e2eaef; }
     .specs {
       display: block;
       margin-top: 1px;

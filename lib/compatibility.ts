@@ -1,3 +1,8 @@
+import {
+  getProductsForCategory,
+  getSelectionIds,
+  type SelectedBuild,
+} from "@/lib/build-selection-utils";
 import type { Category, FormFactor, Product, BuildSelection } from "@/lib/types";
 
 const FORM_SUPPORT: Record<FormFactor, FormFactor[]> = {
@@ -21,6 +26,10 @@ function productLabel(product: Product) {
   return `${product.brand} ${product.name}`.trim();
 }
 
+function firstProduct(selected: SelectedBuild, category: Category) {
+  return getProductsForCategory(selected, category)[0];
+}
+
 export type CompatIssue = {
   id: string;
   message: string;
@@ -29,23 +38,35 @@ export type CompatIssue = {
 export function getSelectedProducts(
   products: Product[],
   selection: BuildSelection
-) {
-  const map: Partial<Record<Category, Product>> = {};
-  for (const [category, id] of Object.entries(selection) as [Category, string][]) {
-    const found = products.find((item) => item.id === id);
-    if (found) map[category] = found;
+): SelectedBuild {
+  const map: SelectedBuild = {};
+
+  for (const category of Object.keys(selection) as Category[]) {
+    const ids = getSelectionIds(selection, category);
+    const found = ids
+      .map((id) => products.find((item) => item.id === id))
+      .filter((item): item is Product => Boolean(item));
+
+    if (found.length === 0) continue;
+
+    if (category === "ram" || category === "storage") {
+      map[category] = found;
+    } else {
+      map[category] = found[0];
+    }
   }
+
   return map;
 }
 
 export function incompatibilityReason(
   product: Product,
-  selected: Partial<Record<Category, Product>>
+  selected: SelectedBuild
 ): string | null {
-  const cpu = selected.cpu;
-  const motherboard = selected.motherboard;
-  const ram = selected.ram;
-  const pcCase = selected.case;
+  const cpu = firstProduct(selected, "cpu");
+  const motherboard = firstProduct(selected, "motherboard");
+  const rams = getProductsForCategory(selected, "ram");
+  const pcCase = firstProduct(selected, "case");
 
   if (product.category === "motherboard" && cpu?.specs.socket) {
     if (product.specs.socket && product.specs.socket !== cpu.specs.socket) {
@@ -59,15 +80,25 @@ export function incompatibilityReason(
     }
   }
 
-  if (product.category === "ram" && motherboard?.specs.ramType) {
-    if (product.specs.ramType && product.specs.ramType !== motherboard.specs.ramType) {
-      return `هذا النوع ${product.specs.ramType} والمذربود يدعم ${motherboard.specs.ramType}`;
+  if (product.category === "ram") {
+    if (motherboard?.specs.ramType && product.specs.ramType) {
+      if (product.specs.ramType !== motherboard.specs.ramType) {
+        return `هذا النوع ${product.specs.ramType} والمذربود يدعم ${motherboard.specs.ramType}`;
+      }
+    }
+    const firstRam = rams[0];
+    if (firstRam?.specs.ramType && product.specs.ramType) {
+      if (product.specs.ramType !== firstRam.specs.ramType) {
+        return `لازم كل الرامات من نفس النوع (${firstRam.specs.ramType})`;
+      }
     }
   }
 
-  if (product.category === "motherboard" && ram?.specs.ramType) {
-    if (product.specs.ramType && product.specs.ramType !== ram.specs.ramType) {
-      return `المذربود ${product.specs.ramType} والرامات ${ram.specs.ramType}`;
+  if (product.category === "motherboard") {
+    for (const ram of rams) {
+      if (product.specs.ramType && ram.specs.ramType && product.specs.ramType !== ram.specs.ramType) {
+        return `المذربود ${product.specs.ramType} والرامات ${ram.specs.ramType}`;
+      }
     }
   }
 
@@ -123,24 +154,24 @@ export function buildIssues(
   const selected = getSelectedProducts(products, selection);
   const issues: CompatIssue[] = [];
 
-  for (const product of Object.values(selected)) {
-    if (!product) continue;
+  for (const category of Object.keys(selected) as Category[]) {
+    for (const product of getProductsForCategory(selected, category)) {
+      if (product.stock <= 0) {
+        issues.push({
+          id: `stock-${product.id}`,
+          message: `${productLabel(product)} نفد من المخزون`,
+        });
+      } else if (!product.available) {
+        issues.push({
+          id: `avail-${product.id}`,
+          message: `${productLabel(product)} غير متوفر حالياً`,
+        });
+      }
 
-    if (product.stock <= 0) {
-      issues.push({
-        id: `stock-${product.id}`,
-        message: `${productLabel(product)} نفد من المخزون`,
-      });
-    } else if (!product.available) {
-      issues.push({
-        id: `avail-${product.id}`,
-        message: `${productLabel(product)} غير متوفر حالياً`,
-      });
-    }
-
-    const reason = incompatibilityReason(product, selected);
-    if (reason) {
-      issues.push({ id: `${product.category}-${product.id}`, message: reason });
+      const reason = incompatibilityReason(product, selected);
+      if (reason) {
+        issues.push({ id: `${product.category}-${product.id}`, message: reason });
+      }
     }
   }
 
@@ -156,17 +187,21 @@ function uniqueIssues(issues: CompatIssue[]) {
   });
 }
 
-export function estimatePsuWattage(
-  selected: Partial<Record<Category, Product>>
-) {
-  const cpu = selected.cpu?.specs.tdp ?? 0;
-  const gpu = selected.gpu?.specs.wattage ?? 0;
+export function estimatePsuWattage(selected: SelectedBuild) {
+  const cpu = firstProduct(selected, "cpu")?.specs.tdp ?? 0;
+  const gpu = firstProduct(selected, "gpu")?.specs.wattage ?? 0;
   if (!cpu && !gpu) return null;
   const raw = cpu + gpu + 150;
   const rounded = Math.ceil(raw / 50) * 50;
   return Math.max(550, rounded);
 }
 
-export function buildTotal(selected: Partial<Record<Category, Product>>) {
-  return Object.values(selected).reduce((sum, item) => sum + (item?.price ?? 0), 0);
+export function buildTotal(selected: SelectedBuild) {
+  let total = 0;
+  for (const category of Object.keys(selected) as Category[]) {
+    for (const item of getProductsForCategory(selected, category)) {
+      total += item.price;
+    }
+  }
+  return total;
 }

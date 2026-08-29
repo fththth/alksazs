@@ -1,4 +1,9 @@
 import { CATEGORIES, type BuildSelection, type Product } from "@/lib/types";
+import {
+  getSelectionIds,
+  isMultiSelectCategory,
+  normalizeStoredSelection,
+} from "@/lib/build-selection-utils";
 
 export const BUILD_STORAGE_KEY = "qazzaz-build";
 
@@ -7,14 +12,7 @@ export function readStoredBuild(): BuildSelection {
   try {
     const raw = window.localStorage.getItem(BUILD_STORAGE_KEY);
     if (!raw) return {};
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object") return {};
-    const selection: BuildSelection = {};
-    for (const category of CATEGORIES) {
-      const value = (parsed as Record<string, unknown>)[category];
-      if (typeof value === "string" && value) selection[category] = value;
-    }
-    return selection;
+    return normalizeStoredSelection(JSON.parse(raw));
   } catch {
     return {};
   }
@@ -22,12 +20,22 @@ export function readStoredBuild(): BuildSelection {
 
 export function sanitizeSelection(products: Product[], selection: BuildSelection): BuildSelection {
   const next: BuildSelection = {};
+
   for (const category of CATEGORIES) {
-    const id = selection[category];
-    if (!id) continue;
-    const exists = products.some((item) => item.id === id && item.category === category);
-    if (exists) next[category] = id;
+    const ids = getSelectionIds(selection, category);
+    const valid = ids.filter((id) =>
+      products.some((item) => item.id === id && item.category === category)
+    );
+
+    if (valid.length === 0) continue;
+
+    if (isMultiSelectCategory(category)) {
+      next[category] = valid;
+    } else {
+      next[category] = valid[0];
+    }
   }
+
   return next;
 }
 
