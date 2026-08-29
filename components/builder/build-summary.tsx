@@ -73,8 +73,10 @@ export function BuildSummary({
   function handlePrint() {
     if (empty) return;
     const opened = printBuildSpecs(exportInput);
-    if (!opened) {
-      toast.error("الطباعة محظورة. اسمح بالنوافذ المنبثقة وجرب مرة ثانية.");
+    if (opened) {
+      toast.success("جاري فتح نافذة الطباعة…");
+    } else {
+      toast.error("تعذّر فتح الطباعة. جرّب مرة ثانية.");
     }
   }
 

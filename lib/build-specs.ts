@@ -434,14 +434,80 @@ export function buildPrintHtml(
       </footer>
     </main>
   </article>
-  <script>
-    window.onload = function() {
-      window.focus();
-      setTimeout(function() { window.print(); }, 350);
-    };
-  </script>
 </body>
 </html>`;
+}
+
+const PRINT_TRIGGER_SCRIPT = `
+<script>
+(function () {
+  function triggerPrint() {
+    window.focus();
+    window.print();
+  }
+
+  function waitForImages() {
+    var imgs = document.querySelectorAll("img");
+    if (!imgs.length) {
+      setTimeout(triggerPrint, 400);
+      return;
+    }
+
+    var remaining = imgs.length;
+    function done() {
+      remaining -= 1;
+      if (remaining <= 0) setTimeout(triggerPrint, 400);
+    }
+
+    imgs.forEach(function (img) {
+      if (img.complete) done();
+      else {
+        img.addEventListener("load", done);
+        img.addEventListener("error", done);
+      }
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", waitForImages);
+  } else {
+    waitForImages();
+  }
+})();
+</script>`;
+
+function withPrintScript(html: string) {
+  return html.replace("</body>", `${PRINT_TRIGGER_SCRIPT}</body>`);
+}
+
+function printInHiddenIframe(html: string) {
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("title", "طباعة تجميعة القزاز");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none;";
+
+  document.body.appendChild(iframe);
+
+  const win = iframe.contentWindow;
+  const doc = win?.document;
+  if (!win || !doc) {
+    iframe.remove();
+    return false;
+  }
+
+  doc.open();
+  doc.write(withPrintScript(html));
+  doc.close();
+
+  const cleanup = () => {
+    window.setTimeout(() => iframe.remove(), 1500);
+  };
+
+  win.addEventListener("afterprint", cleanup, { once: true });
+  window.setTimeout(cleanup, 30_000);
+
+  return true;
 }
 
 export function printBuildSpecs(input: BuildExportInput) {
@@ -450,12 +516,20 @@ export function printBuildSpecs(input: BuildExportInput) {
     logoUrl: `${origin}/brand/mark.png`,
     splashUrl: `${origin}/brand/splash.jpg`,
   });
-  const popup = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
-  if (!popup) return false;
-  popup.document.open();
-  popup.document.write(html);
-  popup.document.close();
-  return true;
+  const printableHtml = withPrintScript(html);
+
+  // Blob tab: works without document.write and shows a preview before printing.
+  const blob = new Blob([printableHtml], { type: "text/html;charset=utf-8" });
+  const blobUrl = URL.createObjectURL(blob);
+  const popup = window.open(blobUrl, "_blank");
+
+  if (popup) {
+    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 120_000);
+    return true;
+  }
+
+  URL.revokeObjectURL(blobUrl);
+  return printInHiddenIframe(html);
 }
 
 export async function copyBuildSpecs(input: BuildExportInput) {
