@@ -3,18 +3,17 @@
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
-  Check,
   Loader2,
   RefreshCcw,
   Search,
 } from "lucide-react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BrandMark } from "@/components/brand-mark";
 import { BuildSummary } from "@/components/builder/build-summary";
+import { ProductPickerCard } from "@/components/builder/product-picker-card";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import {
   buildIssues,
@@ -23,7 +22,7 @@ import {
   getSelectedProducts,
   incompatibilityReason,
 } from "@/lib/compatibility";
-import { formatPrice, formatStock } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import type { Category, Product } from "@/lib/types";
 import { useBuildSelection } from "@/hooks/use-build-selection";
 import { useCatalog } from "@/hooks/use-catalog";
@@ -57,8 +56,32 @@ export function BuilderApp() {
 
   function pick(product: Product) {
     if (product.stock <= 0) return;
+
+    if (selection[product.category] === product.id) {
+      clearPart(product.category);
+      return;
+    }
+
     if (incompatibilityReason(product, selected)) return;
-    setSelection((current) => ({ ...current, [product.category]: product.id }));
+
+    setSelection((current) => {
+      const next = { ...current, [product.category]: product.id };
+      const idx = CATEGORY_ORDER.indexOf(product.category);
+      for (let i = idx + 1; i < CATEGORY_ORDER.length; i++) {
+        const key = CATEGORY_ORDER[i];
+        if (!next[key]) {
+          queueMicrotask(() => setCategory(key));
+          break;
+        }
+      }
+      return next;
+    });
+  }
+
+  function goToCategory(key: Category) {
+    setCategory(key);
+    setQuery("");
+    setSheetOpen(false);
   }
 
   function clearPart(key: Category) {
@@ -148,7 +171,26 @@ export function BuilderApp() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="surface-card min-w-0 p-4 sm:p-5">
-          <div className="grid grid-cols-4 gap-1 sm:grid-cols-8">
+          <div className="flex items-center gap-1">
+            {CATEGORY_ORDER.map((key) => {
+              const done = Boolean(selected[key]);
+              const active = category === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  title={CATEGORY_META[key].label}
+                  onClick={() => goToCategory(key)}
+                  className={cn(
+                    "h-1.5 flex-1 rounded-full transition",
+                    done ? "bg-emerald-500" : active ? "bg-primary" : "bg-muted"
+                  )}
+                />
+              );
+            })}
+          </div>
+
+          <div className="mt-3 grid grid-cols-4 gap-1 sm:grid-cols-8">
             {CATEGORY_ORDER.map((key) => {
               const item = CATEGORY_META[key];
               const Icon = item.icon;
@@ -160,10 +202,7 @@ export function BuilderApp() {
                   type="button"
                   title={item.label}
                   aria-pressed={active}
-                  onClick={() => {
-                    setCategory(key);
-                    setQuery("");
-                  }}
+                  onClick={() => goToCategory(key)}
                   className={cn(
                     "flex min-h-9 min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full border px-1.5 py-2 text-[11px] leading-tight transition sm:px-2 sm:text-xs",
                     active ? "chip-active" : "chip-idle"
@@ -200,96 +239,43 @@ export function BuilderApp() {
             </div>
           </div>
 
+          {selected[category] ? (
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
+              <p className="min-w-0 truncate text-foreground">
+                <span className="text-primary">المختار: </span>
+                <span className="font-semibold">
+                  {selected[category]!.brand} {selected[category]!.name}
+                </span>
+              </p>
+              <Button variant="ghost" size="sm" onClick={() => clearPart(category)}>
+                إلغاء
+              </Button>
+            </div>
+          ) : null}
+
           {visible.length === 0 ? (
             <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center text-muted-foreground">
               ماكو قطع بهالتصنيف حالياً
               {query ? " مطابقة للبحث" : ""}. تقدر تضيف من لوحة التحكم.
             </div>
           ) : (
-            <ul className="mt-6 grid gap-3">
+            <ul className="mt-4 grid gap-2 sm:gap-3">
               {visible.map((product) => {
                 const chosen = selection[product.category] === product.id;
                 const reason = incompatibilityReason(product, selected);
                 const incompatible = Boolean(reason);
                 const out = product.stock <= 0;
-                const blocked = out || incompatible;
+
                 return (
-                  <li key={product.id}>
-                    <button
-                      type="button"
-                      disabled={blocked}
-                      onClick={() => pick(product)}
-                      aria-disabled={blocked}
-                      className={cn(
-                        "relative flex w-full flex-col gap-3 overflow-hidden rounded-xl border p-4 text-right transition sm:flex-row sm:items-center sm:justify-between",
-                        chosen && !incompatible
-                          ? "border-primary/40 bg-primary/5 shadow-sm"
-                          : incompatible
-                            ? "cursor-not-allowed border-destructive bg-destructive/10"
-                            : "border-border bg-background hover:border-primary/25 hover:bg-muted/30",
-                        out && !incompatible && "opacity-50"
-                      )}
-                    >
-                      {incompatible ? (
-                        <div className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive px-3 py-2 text-sm font-semibold text-white sm:absolute sm:inset-x-4 sm:top-4 sm:w-auto">
-                          <AlertTriangle className="size-4 shrink-0" />
-                          غير متوافق
-                        </div>
-                      ) : null}
-                      <div className={cn("min-w-0 w-full", incompatible && "mt-10 sm:mt-12")}>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p
-                            className={cn(
-                              "font-heading text-base font-semibold",
-                              incompatible ? "text-destructive" : "text-foreground"
-                            )}
-                          >
-                            {product.brand} {product.name}
-                          </p>
-                          {chosen && !incompatible ? (
-                            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
-                              <Check />
-                              مختار
-                            </Badge>
-                          ) : null}
-                          {out ? <Badge variant="outline">نفد</Badge> : null}
-                        </div>
-                        <p
-                          className={cn(
-                            "mt-1 text-sm leading-7",
-                            incompatible ? "text-destructive/80" : "text-muted-foreground"
-                          )}
-                        >
-                          {product.description}
-                        </p>
-                        <div
-                          className={cn(
-                            "mt-2 flex flex-wrap gap-2 text-xs",
-                            incompatible ? "text-destructive/70" : "text-muted-foreground"
-                          )}
-                        >
-                          {product.specs.socket ? <span>سوكت {product.specs.socket}</span> : null}
-                          {product.specs.ramType ? <span>{product.specs.ramType}</span> : null}
-                          {product.specs.formFactor ? <span>{product.specs.formFactor}</span> : null}
-                          {product.specs.capacity ? <span>{product.specs.capacity}</span> : null}
-                          {product.specs.speed ? <span>{product.specs.speed}</span> : null}
-                          <span>{formatStock(product.stock)}</span>
-                        </div>
-                        {reason ? (
-                          <p className="mt-2 text-xs font-medium text-destructive">{reason}</p>
-                        ) : null}
-                      </div>
-                      <p
-                        className={cn(
-                          "shrink-0 font-heading text-lg font-bold",
-                          incompatible ? "text-destructive/70" : "text-primary"
-                        )}
-                        dir="ltr"
-                      >
-                        {formatPrice(product.price)}
-                      </p>
-                    </button>
-                  </li>
+                  <ProductPickerCard
+                    key={product.id}
+                    product={product}
+                    chosen={chosen}
+                    incompatible={incompatible}
+                    out={out}
+                    reason={reason}
+                    onPick={() => pick(product)}
+                  />
                 );
               })}
             </ul>
@@ -307,6 +293,7 @@ export function BuilderApp() {
               whatsapp={catalog.settings.whatsapp}
               onClearPart={clearPart}
               onReset={resetBuild}
+              onEditCategory={goToCategory}
             />
           </div>
         </aside>
@@ -343,6 +330,7 @@ export function BuilderApp() {
               whatsapp={catalog.settings.whatsapp}
               onClearPart={clearPart}
               onReset={resetBuild}
+              onEditCategory={goToCategory}
             />
           </div>
         </SheetContent>

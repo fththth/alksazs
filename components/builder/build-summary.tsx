@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { CheckCircle2, Copy, MessageCircle, Printer, RotateCcw, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ import type { CompatIssue } from "@/lib/compatibility";
 
 const TOTAL_PARTS = CATEGORY_ORDER.length;
 
-function ClearIconButton({ onClick }: { onClick: () => void }) {
+function ClearIconButton({ onClick }: { onClick: (event: MouseEvent) => void }) {
   return (
     <button
       type="button"
@@ -35,10 +35,12 @@ function ClearIconButton({ onClick }: { onClick: () => void }) {
 function PartsList({
   selected,
   onClearPart,
+  onEditCategory,
   allowClear,
 }: {
   selected: Partial<Record<Category, Product>>;
   onClearPart?: (category: Category) => void;
+  onEditCategory?: (category: Category) => void;
   allowClear: boolean;
 }) {
   return (
@@ -49,26 +51,36 @@ function PartsList({
         const Icon = meta.icon;
 
         return (
-          <li
-            key={key}
-            className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-2.5"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1.5 text-[11px] font-medium text-primary">
-                <Icon className="size-3.5 shrink-0" />
-                {meta.label}
-              </p>
-              {item ? (
-                <p className="mt-0.5 text-sm font-semibold leading-6 text-foreground break-words">
-                  {productFullName(item)}
+          <li key={key}>
+            <button
+              type="button"
+              onClick={() => onEditCategory?.(key)}
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-2.5 text-right transition hover:border-primary/25 hover:bg-muted/40"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-1.5 text-[11px] font-medium text-primary">
+                  <Icon className="size-3.5 shrink-0" />
+                  {meta.label}
                 </p>
+                {item ? (
+                  <p className="mt-0.5 text-sm font-semibold leading-6 text-foreground break-words">
+                    {productFullName(item)}
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-sm text-muted-foreground">اضغط للاختيار</p>
+                )}
+              </div>
+              {allowClear && item && onClearPart ? (
+                <ClearIconButton
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onClearPart(key);
+                  }}
+                />
               ) : (
-                <p className="mt-0.5 text-sm text-muted-foreground">ما انختار بعد</p>
+                <span className="text-xs text-muted-foreground">تغيير</span>
               )}
-            </div>
-            {allowClear && item && onClearPart ? (
-              <ClearIconButton onClick={() => onClearPart(key)} />
-            ) : null}
+            </button>
           </li>
         );
       })}
@@ -85,6 +97,7 @@ type Props = {
   whatsapp: string;
   onClearPart: (category: Category) => void;
   onReset: () => void;
+  onEditCategory: (category: Category) => void;
 };
 
 export function BuildSummary({
@@ -96,6 +109,7 @@ export function BuildSummary({
   whatsapp,
   onClearPart,
   onReset,
+  onEditCategory,
 }: Props) {
   const [copying, setCopying] = useState(false);
   const empty = selectedCount === 0;
@@ -168,7 +182,12 @@ export function BuildSummary({
           </div>
 
           <div className="mt-4">
-            <PartsList selected={selected} allowClear={false} />
+            <PartsList
+              selected={selected}
+              allowClear
+              onClearPart={onClearPart}
+              onEditCategory={onEditCategory}
+            />
           </div>
 
           <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-5 text-center">
@@ -198,7 +217,12 @@ export function BuildSummary({
       ) : (
         <>
           <div className="mt-4">
-            <PartsList selected={selected} onClearPart={onClearPart} allowClear />
+            <PartsList
+              selected={selected}
+              onClearPart={onClearPart}
+              onEditCategory={onEditCategory}
+              allowClear
+            />
           </div>
 
           {issues.length > 0 ? (
