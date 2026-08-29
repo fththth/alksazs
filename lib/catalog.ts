@@ -6,6 +6,12 @@ import { seedCatalog } from "@/lib/seed";
 const dataDir = path.join(process.cwd(), "data");
 const catalogPath = path.join(dataDir, "catalog.json");
 
+let cachedCatalog: Catalog | null = null;
+
+export function invalidateCatalogCache() {
+  cachedCatalog = null;
+}
+
 async function ensureCatalogFile() {
   try {
     await readFile(catalogPath, "utf8");
@@ -42,6 +48,8 @@ function convertLegacyUsd(catalog: Catalog): Catalog {
 }
 
 export async function readCatalog(): Promise<Catalog> {
+  if (cachedCatalog) return cachedCatalog;
+
   await ensureCatalogFile();
   const raw = await readFile(catalogPath, "utf8");
   const parsed = JSON.parse(raw) as Catalog;
@@ -57,12 +65,14 @@ export async function readCatalog(): Promise<Catalog> {
     await writeCatalog(catalog);
   }
 
+  cachedCatalog = catalog;
   return catalog;
 }
 
 export async function writeCatalog(catalog: Catalog) {
   await mkdir(dataDir, { recursive: true });
   await writeFile(catalogPath, JSON.stringify(catalog, null, 2), "utf8");
+  cachedCatalog = catalog;
 }
 
 export async function listProducts() {

@@ -55,7 +55,11 @@ function asProduct(body: unknown): Product | null {
 
 export async function GET() {
   const catalog = await readCatalog();
-  return NextResponse.json(catalog);
+  return NextResponse.json(catalog, {
+    headers: {
+      "Cache-Control": "private, max-age=5, stale-while-revalidate=60",
+    },
+  });
 }
 
 export async function POST(request: Request) {

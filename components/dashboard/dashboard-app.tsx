@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/table";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import { formatPrice, formatStock } from "@/lib/format";
-import type { Category, Product, ShopSettings } from "@/lib/types";
+import type { Catalog, Category, Product, ShopSettings } from "@/lib/types";
 import { ProductForm, emptyProduct } from "@/components/dashboard/product-form";
 import { useCatalog } from "@/hooks/use-catalog";
 
@@ -43,7 +43,16 @@ const EMPTY_PRODUCTS: Product[] = [];
 const DEFAULT_SETTINGS: ShopSettings = { whatsapp: "", shopNote: "" };
 
 export function DashboardApp() {
-  const { catalog, error, loading, reload } = useCatalog();
+  const {
+    catalog,
+    error,
+    loading,
+    reload,
+    setCatalog,
+    upsertProductLocal,
+    removeProductLocal,
+    updateSettingsLocal,
+  } = useCatalog();
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Category | "all">("all");
@@ -83,9 +92,10 @@ export function DashboardApp() {
         }
       );
       if (!response.ok) throw new Error("save failed");
+      const saved = (await response.json()) as Product;
       toast.success(isNew ? "انضافت القطعة" : "تم حفظ التعديل");
       setEditor(null);
-      await reload();
+      upsertProductLocal(saved);
     } catch {
       toast.error("ما انحفظت القطعة. جرّب مرة ثانية.");
     } finally {
@@ -99,9 +109,10 @@ export function DashboardApp() {
     try {
       const response = await fetch(`/api/catalog/${deleteId}`, { method: "DELETE" });
       if (!response.ok) throw new Error("delete failed");
+      const id = deleteId;
       toast.success("انمسحت القطعة من المخزون");
       setDeleteId(null);
-      await reload();
+      removeProductLocal(id);
     } catch {
       toast.error("ما قدرنا نمسح القطعة.");
     } finally {
@@ -118,9 +129,10 @@ export function DashboardApp() {
         body: JSON.stringify(settings),
       });
       if (!response.ok) throw new Error("settings failed");
+      const saved = (await response.json()) as ShopSettings;
       toast.success("انحفظت إعدادات المحل");
       setDraftSettings(null);
-      await reload();
+      updateSettingsLocal(saved);
     } catch {
       toast.error("ما انحفظت الإعدادات.");
     } finally {
@@ -137,10 +149,11 @@ export function DashboardApp() {
         body: JSON.stringify({ action: "restore" }),
       });
       if (!response.ok) throw new Error("restore failed");
+      const restored = (await response.json()) as Catalog;
       toast.success("رجعنا الكتالوج الأساسي");
       setRestoreOpen(false);
       setDraftSettings(null);
-      await reload();
+      setCatalog(restored);
     } catch {
       toast.error("فشل استرجاع الكتالوج.");
     } finally {
@@ -148,7 +161,7 @@ export function DashboardApp() {
     }
   }
 
-  if (loading) {
+  if (loading && !catalog) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
         <Loader2 className="size-8 animate-spin text-cyan-200" />

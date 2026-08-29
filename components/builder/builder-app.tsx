@@ -74,7 +74,7 @@ export function BuilderApp() {
     setSelection({});
   }
 
-  if (loading) {
+  if (loading && !catalog) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
         <Loader2 className="size-8 animate-spin text-cyan-200" />
@@ -108,6 +108,8 @@ export function BuilderApp() {
             alt="شعار القزاز لخدمات الحاسبات"
             fill
             priority
+            sizes="(max-width: 1024px) 100vw, 1280px"
+            quality={75}
             className="object-cover object-[center_22%]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#12394c]/90 via-[#1a5670]/35 to-transparent" />

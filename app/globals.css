@@ -129,7 +129,6 @@
       url("/brand/splash.jpg");
     background-size: cover;
     background-position: center top;
-    background-attachment: fixed;
   }
   html {
     @apply font-sans;
