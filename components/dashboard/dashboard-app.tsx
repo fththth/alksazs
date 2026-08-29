@@ -40,6 +40,7 @@ import { formatPrice, formatStock } from "@/lib/format";
 import type { Catalog, Category, Product, ShopSettings, ThemeMode } from "@/lib/types";
 import { ProductForm, emptyProduct } from "@/components/dashboard/product-form";
 import { useCatalog } from "@/hooks/use-catalog";
+import { writeCachedThemeMode } from "@/lib/theme-storage";
 import { cn } from "@/lib/utils";
 
 const EMPTY_PRODUCTS: Product[] = [];
@@ -57,6 +58,7 @@ export function DashboardApp() {
     updateSettingsLocal,
   } = useCatalog();
   const [saving, setSaving] = useState(false);
+  const [themeSaving, setThemeSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Category | "all">("all");
   const [editor, setEditor] = useState<Product | null>(null);
@@ -136,6 +138,7 @@ export function DashboardApp() {
       toast.success("انحفظت إعدادات المحل");
       setDraftSettings(null);
       updateSettingsLocal(saved);
+      writeCachedThemeMode(saved.themeMode);
     } catch {
       toast.error("ما انحفظت الإعدادات.");
     } finally {
@@ -143,10 +146,36 @@ export function DashboardApp() {
     }
   }
 
-  function setThemeMode(mode: ThemeMode) {
-    const next = { ...(draftSettings ?? catalog!.settings), themeMode: mode };
-    setDraftSettings(next);
-    updateSettingsLocal(next);
+  async function setThemeMode(mode: ThemeMode) {
+    if (settings.themeMode === mode || themeSaving) return;
+
+    const payload = { ...(draftSettings ?? catalog!.settings), themeMode: mode };
+    setDraftSettings(payload);
+    updateSettingsLocal(payload);
+    setThemeSaving(true);
+
+    try {
+      const response = await fetch("/api/catalog", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("theme save failed");
+      const saved = (await response.json()) as ShopSettings;
+      updateSettingsLocal(saved);
+      writeCachedThemeMode(saved.themeMode);
+      setDraftSettings((current) => {
+        if (!current) return null;
+        const next = { ...current, themeMode: saved.themeMode };
+        if (next.whatsapp === saved.whatsapp && next.shopNote === saved.shopNote) return null;
+        return next;
+      });
+      toast.success(mode === "dark" ? "انحفظ الوضع الداكن" : "انحفظ الوضع الفاتح");
+    } catch {
+      toast.error("ما انحفظ الوضع. جرّب مرة ثانية.");
+    } finally {
+      setThemeSaving(false);
+    }
   }
 
   async function restore() {
@@ -265,10 +294,12 @@ export function DashboardApp() {
           <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
             <button
               type="button"
-              onClick={() => setThemeMode("light")}
+              disabled={themeSaving}
+              onClick={() => void setThemeMode("light")}
               className={cn(
                 "flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                settings.themeMode === "light" ? "chip-active" : "chip-idle"
+                settings.themeMode === "light" ? "chip-active" : "chip-idle",
+                themeSaving && "opacity-70"
               )}
             >
               <Sun className="size-4" />
@@ -276,10 +307,12 @@ export function DashboardApp() {
             </button>
             <button
               type="button"
-              onClick={() => setThemeMode("dark")}
+              disabled={themeSaving}
+              onClick={() => void setThemeMode("dark")}
               className={cn(
                 "flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
-                settings.themeMode === "dark" ? "chip-active" : "chip-idle"
+                settings.themeMode === "dark" ? "chip-active" : "chip-idle",
+                themeSaving && "opacity-70"
               )}
             >
               <Moon className="size-4" />
@@ -287,7 +320,7 @@ export function DashboardApp() {
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
-            التغيير يظهر مباشرة. اضغط «حفظ الإعدادات» حتى يشوف الزبون نفس الوضع.
+            يُحفظ تلقائياً — يبقى فاتح أو داكن حتى بعد تجديد الصفحة أو الرجوع لاحقاً.
           </p>
         </div>
 
