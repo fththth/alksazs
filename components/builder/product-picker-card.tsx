@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, AlertTriangle } from "lucide-react";
+import { type KeyboardEvent } from "react";
+import { Check, AlertTriangle, ChevronLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice, formatStock } from "@/lib/format";
@@ -36,64 +37,97 @@ export function ProductPickerCard({
 }: Props) {
   const blocked = out || incompatible;
   const chips = specChips(product);
+  const interactive = !blocked;
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (!interactive) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onPick();
+    }
+  }
 
   return (
     <li>
       <div
+        role={interactive ? "button" : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        aria-disabled={blocked || undefined}
+        onClick={interactive ? onPick : undefined}
+        onKeyDown={handleKeyDown}
         className={cn(
           "rounded-xl border p-3 transition sm:p-4",
+          interactive &&
+            "cursor-pointer touch-manipulation active:scale-[0.995] active:bg-muted/50 sm:cursor-default sm:active:scale-100 sm:active:bg-transparent",
+          blocked && "cursor-not-allowed",
           chosen && !incompatible
             ? "border-primary/40 bg-primary/5"
             : incompatible
               ? "border-destructive/30 bg-destructive/5"
-              : "border-border bg-background"
+              : "border-border bg-background",
+          interactive &&
+            !chosen &&
+            "hover:border-primary/25 sm:hover:border-border"
         )}
       >
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            <p
-              className={cn(
-                "font-heading text-sm font-semibold leading-snug sm:text-base",
-                incompatible ? "text-destructive" : "text-foreground"
-              )}
-            >
-              {product.brand} {product.name}
-            </p>
-            {chosen && !incompatible ? (
-              <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
-                <Check className="size-3" />
-                مختار
-              </Badge>
-            ) : null}
-            {out ? <Badge variant="outline">نفد</Badge> : null}
-            {incompatible ? (
-              <Badge variant="destructive" className="gap-1">
-                <AlertTriangle className="size-3" />
-                غير متوافق
-              </Badge>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <p
+                  className={cn(
+                    "font-heading text-sm font-semibold leading-snug sm:text-base",
+                    incompatible ? "text-destructive" : "text-foreground"
+                  )}
+                >
+                  {product.brand} {product.name}
+                </p>
+                {chosen && !incompatible ? (
+                  <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                    <Check className="size-3" />
+                    مختار
+                  </Badge>
+                ) : null}
+                {out ? <Badge variant="outline">نفد</Badge> : null}
+                {incompatible ? (
+                  <Badge variant="destructive" className="gap-1">
+                    <AlertTriangle className="size-3" />
+                    غير متوافق
+                  </Badge>
+                ) : null}
+              </div>
+
+              {chips.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {chips.map((chip) => (
+                    <span
+                      key={chip}
+                      className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                  <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                    {formatStock(product.stock)}
+                  </span>
+                </div>
+              ) : null}
+
+              {reason ? (
+                <p className="mt-2 text-xs leading-5 text-destructive">{reason}</p>
+              ) : null}
+            </div>
+
+            {interactive ? (
+              <ChevronLeft
+                aria-hidden
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground/60 sm:hidden"
+              />
             ) : null}
           </div>
-
-          {chips.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {chips.map((chip) => (
-                <span
-                  key={chip}
-                  className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
-                >
-                  {chip}
-                </span>
-              ))}
-              <span className="rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                {formatStock(product.stock)}
-              </span>
-            </div>
-          ) : null}
-
-          {reason ? <p className="mt-2 text-xs leading-5 text-destructive">{reason}</p> : null}
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 border-t border-border/80 pt-3 sm:mt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:border-0 sm:pt-0">
+        <div className="mt-3 flex items-center justify-between gap-3 sm:mt-4">
           <p
             className={cn(
               "font-heading text-lg font-bold sm:text-xl",
@@ -103,13 +137,17 @@ export function ProductPickerCard({
           >
             {formatPrice(product.price)}
           </p>
+
           <Button
             type="button"
             size="default"
             variant={chosen && !incompatible ? "outline" : "default"}
             disabled={blocked}
-            onClick={onPick}
-            className="min-h-11 w-full px-5 sm:min-h-8 sm:w-auto sm:min-w-[4.5rem] sm:px-3"
+            onClick={(event) => {
+              event.stopPropagation();
+              onPick();
+            }}
+            className="hidden min-h-8 min-w-[4.5rem] px-3 sm:inline-flex"
           >
             {chosen && !incompatible ? "تغيير" : "اختيار"}
           </Button>
