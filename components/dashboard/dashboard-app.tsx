@@ -151,7 +151,7 @@ export function DashboardApp() {
   if (loading) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-        <Loader2 className="size-8 animate-spin text-amber-300" />
+        <Loader2 className="size-8 animate-spin text-cyan-200" />
         <p>نجهّز لوحة التحكم...</p>
       </div>
     );
@@ -160,8 +160,8 @@ export function DashboardApp() {
   if (error || !catalog) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
-        <AlertTriangle className="size-10 text-amber-300" />
-        <p className="text-lg text-amber-50">{error}</p>
+        <AlertTriangle className="size-10 text-cyan-200" />
+        <p className="text-lg text-white">{error}</p>
         <Button onClick={() => void reload()}>
           <RefreshCcw />
           إعادة المحاولة
@@ -174,8 +174,8 @@ export function DashboardApp() {
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs tracking-[0.2em] text-amber-200/60">لوحة التحكم</p>
-          <h1 className="mt-1 font-heading text-3xl font-bold text-amber-50">
+          <p className="text-xs tracking-[0.2em] text-cyan-100/70">لوحة التحكم</p>
+          <h1 className="mt-1 font-heading text-3xl font-bold text-white">
             مخزون القزاز
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-7 text-zinc-400">
@@ -222,7 +222,7 @@ export function DashboardApp() {
       </div>
 
       <section className="mt-6 rounded-3xl border border-white/10 bg-white/3 p-5">
-        <h2 className="font-heading text-lg font-semibold text-amber-50">إعدادات المحل</h2>
+        <h2 className="font-heading text-lg font-semibold text-white">إعدادات المحل</h2>
         <p className="mt-1 text-sm text-zinc-400">
           رقم الواتساب يظهر زر الطلب للزبون. اكتب الرقم مع مفتاح الدولة بدون +.
         </p>
@@ -261,7 +261,7 @@ export function DashboardApp() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#12151e]/80 p-4 sm:p-5">
+      <section className="mt-6 rounded-3xl border border-white/10 bg-[#164a61]/85 p-4 sm:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex gap-2 overflow-x-auto pb-1">
             <FilterChip
@@ -310,7 +310,7 @@ export function DashboardApp() {
                 {visible.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
-                      <p className="font-medium text-amber-50">
+                      <p className="font-medium text-white">
                         {product.brand} {product.name}
                       </p>
                       <p className="max-w-md truncate text-xs text-zinc-500">
@@ -432,11 +432,11 @@ function StatCard({
   return (
     <div className="rounded-2xl border border-white/10 bg-white/4 p-4">
       <div className="flex items-center gap-2 text-sm text-zinc-400">
-        <Icon className="size-4 text-amber-300" />
+        <Icon className="size-4 text-cyan-200" />
         {label}
       </div>
       <p
-        className="mt-2 font-heading text-2xl font-bold text-amber-50"
+        className="mt-2 font-heading text-2xl font-bold text-white"
         dir={ltr ? "ltr" : undefined}
       >
         {value}
@@ -461,7 +461,7 @@ function FilterChip({
       onClick={onClick}
       className={
         active
-          ? "shrink-0 rounded-full border border-amber-300/40 bg-amber-300/15 px-3 py-1.5 text-sm text-amber-50"
+          ? "shrink-0 rounded-full border border-white/35 bg-white/15 px-3 py-1.5 text-sm text-white"
           : "shrink-0 rounded-full border border-white/8 bg-white/3 px-3 py-1.5 text-sm text-zinc-300 hover:bg-white/6"
       }
     >

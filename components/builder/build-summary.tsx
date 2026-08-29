@@ -32,7 +32,7 @@ type Props = {
 };
 
 function buildWhatsappText(selected: Partial<Record<Category, Product>>, total: number) {
-  const lines = ["مرحبا، أريد تجميعة من القزاز للحاسبات:", ""];
+  const lines = ["مرحبا، أريد تجميعة من القزاز لخدمات الحاسبات:", ""];
   for (const key of CATEGORY_ORDER) {
     const item = selected[key];
     const label = CATEGORY_META[key].label;
@@ -60,11 +60,11 @@ export function BuildSummary({
   const waNumber = whatsapp.replace(/[^\d]/g, "");
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-[#12151e]/90 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+    <div className="rounded-3xl border border-white/10 bg-[#164a61]/90 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs tracking-[0.18em] text-amber-200/60">ملخص التجميعة</p>
-          <h3 className="mt-1 font-heading text-xl font-semibold text-amber-50">
+          <p className="text-xs tracking-[0.18em] text-cyan-100/70">ملخص التجميعة</p>
+          <h3 className="mt-1 font-heading text-xl font-semibold text-white">
             جهازك قيد التجهيز
           </h3>
         </div>
@@ -90,7 +90,7 @@ export function BuildSummary({
                   {meta.label}
                 </p>
                 {item ? (
-                  <p className="mt-0.5 truncate text-sm text-amber-50">
+                  <p className="mt-0.5 truncate text-sm text-white">
                     {item.brand} {item.name}
                   </p>
                 ) : (
@@ -99,7 +99,7 @@ export function BuildSummary({
               </div>
               {item ? (
                 <div className="flex shrink-0 items-center gap-1">
-                  <span className="text-sm text-amber-200" dir="ltr">
+                  <span className="text-sm text-cyan-100" dir="ltr">
                     {formatPrice(item.price)}
                   </span>
                   <ClearIconButton onClick={() => onClearPart(key)} />
@@ -125,7 +125,7 @@ export function BuildSummary({
 
       {psu ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-zinc-400">
-          <Zap className="size-4 text-amber-300" />
+          <Zap className="size-4 text-cyan-200" />
           يفضّل مزود طاقة حوالي {psu} واط
         </p>
       ) : null}
@@ -139,7 +139,7 @@ export function BuildSummary({
       <div className="mt-5 border-t border-white/8 pt-4">
         <div className="flex items-end justify-between">
           <span className="text-sm text-zinc-400">السعر الإجمالي</span>
-          <span className="font-heading text-3xl font-bold text-amber-200" dir="ltr">
+          <span className="font-heading text-3xl font-bold text-cyan-100" dir="ltr">
             {formatPrice(total)}
           </span>
         </div>

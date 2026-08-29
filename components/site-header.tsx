@@ -12,16 +12,16 @@ export function SiteHeader() {
   const onDashboard = pathname.startsWith("/dashboard");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/8 bg-[#0b0d14]/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-white/15 bg-[#1a5a73]/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-[4.25rem] w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <BrandMark className="size-9 drop-shadow-[0_0_18px_rgba(212,160,23,0.35)]" />
+          <BrandMark className="size-12" size={96} />
           <span className="leading-tight">
-            <span className="block font-heading text-lg font-bold tracking-tight text-amber-100">
+            <span className="block font-heading text-lg font-bold tracking-tight text-white">
               القزاز
             </span>
-            <span className="block text-[11px] font-medium tracking-[0.18em] text-amber-200/55">
-              للحاسبات
+            <span className="block text-[12px] font-semibold text-white/80">
+              لخدمات الحاسبات
             </span>
           </span>
         </Link>
@@ -31,7 +31,7 @@ export function SiteHeader() {
             href="/"
             className={cn(
               buttonVariants({ variant: onDashboard ? "ghost" : "secondary", size: "sm" }),
-              !onDashboard && "bg-amber-400/15 text-amber-100 hover:bg-amber-400/25"
+              !onDashboard && "bg-white text-[#12394c] hover:bg-white/90"
             )}
           >
             <MonitorSmartphone />
@@ -41,7 +41,7 @@ export function SiteHeader() {
             href="/dashboard"
             className={cn(
               buttonVariants({ variant: onDashboard ? "secondary" : "ghost", size: "sm" }),
-              onDashboard && "bg-amber-400/15 text-amber-100 hover:bg-amber-400/25"
+              onDashboard && "bg-white text-[#12394c] hover:bg-white/90"
             )}
           >
             <LayoutDashboard />

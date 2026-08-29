@@ -26,6 +26,7 @@ import { BuildSummary } from "@/components/builder/build-summary";
 import { useCatalog } from "@/hooks/use-catalog";
 import { readStoredBuild, writeStoredBuild } from "@/lib/build-storage";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const EMPTY_PRODUCTS: Product[] = [];
 
@@ -76,7 +77,7 @@ export function BuilderApp() {
   if (loading) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-        <Loader2 className="size-8 animate-spin text-amber-300" />
+        <Loader2 className="size-8 animate-spin text-cyan-200" />
         <p>قاعدين نجهّز القطع...</p>
       </div>
     );
@@ -85,8 +86,8 @@ export function BuilderApp() {
   if (error || !catalog) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
-        <AlertTriangle className="size-10 text-amber-300" />
-        <p className="text-lg text-amber-50">{error ?? "صار خطأ غير متوقع."}</p>
+        <AlertTriangle className="size-10 text-cyan-200" />
+        <p className="text-lg text-white">{error ?? "صار خطأ غير متوقع."}</p>
         <Button onClick={() => void reload()}>
           <RefreshCcw />
           إعادة المحاولة
@@ -100,24 +101,31 @@ export function BuilderApp() {
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
-      <section className="relative overflow-hidden rounded-3xl border border-amber-200/10 bg-[linear-gradient(135deg,rgba(212,160,23,0.14),rgba(12,14,22,0.4)_42%,rgba(56,89,160,0.12))] px-5 py-8 sm:px-10 sm:py-12">
-        <div className="pointer-events-none absolute -left-10 top-0 size-56 rounded-full bg-amber-400/10 blur-3xl" />
-        <div className="pointer-events-none absolute -right-8 bottom-0 size-48 rounded-full bg-sky-500/10 blur-3xl" />
-        <p className="text-sm font-medium tracking-[0.2em] text-amber-200/70">
-          القزاز للحاسبات
-        </p>
-        <h1 className="mt-3 max-w-2xl font-heading text-3xl font-bold leading-tight text-amber-50 sm:text-5xl">
-          جهّز حاسبك قطعة قطعة، والسعر يطلع لك مباشرة.
-        </h1>
-        <p className="mt-4 max-w-xl text-base leading-8 text-zinc-300">
-          اختَر المعالج، المذربود، الرامات، كرت الشاشة، التخزين، الكولر، والكيس.
-          نراجع التوافق ونحسبلك السعر الإجمالي قبل لا تطلب.
-        </p>
-        {catalog.settings.shopNote ? (
-          <p className="mt-5 max-w-xl text-sm text-amber-100/70">
-            {catalog.settings.shopNote}
-          </p>
-        ) : null}
+      <section className="relative overflow-hidden rounded-3xl border border-white/20 shadow-[0_24px_60px_rgba(8,40,56,0.35)]">
+        <div className="relative min-h-[320px] sm:min-h-[380px] lg:min-h-[440px]">
+          <Image
+            src="/brand/splash.jpg"
+            alt="شعار القزاز لخدمات الحاسبات"
+            fill
+            priority
+            className="object-cover object-[center_22%]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#12394c]/90 via-[#1a5670]/35 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
+            <h1 className="max-w-2xl font-heading text-2xl font-bold leading-tight text-white sm:text-4xl">
+              جهّز حاسبك قطعة قطعة، والسعر يطلع لك مباشرة.
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-7 text-cyan-50/90 sm:text-base sm:leading-8">
+              اختَر المعالج، المذربود، الرامات، كرت الشاشة، التخزين، الكولر، والكيس.
+              نراجع التوافق ونحسبلك السعر الإجمالي قبل لا تطلب.
+            </p>
+            {catalog.settings.shopNote ? (
+              <p className="mt-3 max-w-xl text-sm text-white/75">
+                {catalog.settings.shopNote}
+              </p>
+            ) : null}
+          </div>
+        </div>
       </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -139,7 +147,7 @@ export function BuilderApp() {
                   className={cn(
                     "flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-sm transition",
                     active
-                      ? "border-amber-300/40 bg-amber-300/15 text-amber-50"
+                      ? "border-white/35 bg-white/15 text-white"
                       : "border-white/8 bg-white/3 text-zinc-300 hover:border-white/16 hover:bg-white/6"
                   )}
                 >
@@ -155,7 +163,7 @@ export function BuilderApp() {
 
           <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-amber-100">
+              <div className="flex items-center gap-2 text-white">
                 <CategoryIcon className="size-5" />
                 <h2 className="font-heading text-2xl font-semibold">{meta.label}</h2>
               </div>
@@ -194,14 +202,14 @@ export function BuilderApp() {
                       className={cn(
                         "flex w-full flex-col gap-3 rounded-2xl border p-4 text-right transition sm:flex-row sm:items-center sm:justify-between",
                         chosen
-                          ? "border-amber-300/50 bg-amber-300/10"
-                          : "border-white/8 bg-white/3 hover:border-amber-200/25 hover:bg-white/6",
+                          ? "border-white/40 bg-white/12"
+                          : "border-white/8 bg-white/3 hover:border-cyan-200/35 hover:bg-white/6",
                         out && "opacity-50"
                       )}
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-heading text-base font-semibold text-amber-50">
+                          <p className="font-heading text-base font-semibold text-white">
                             {product.brand} {product.name}
                           </p>
                           {chosen ? (
@@ -242,7 +250,7 @@ export function BuilderApp() {
                         ) : null}
                       </div>
                       <p
-                        className="shrink-0 font-heading text-xl font-bold text-amber-200"
+                        className="shrink-0 font-heading text-xl font-bold text-cyan-100"
                         dir="ltr"
                       >
                         {formatPrice(product.price)}
@@ -273,13 +281,13 @@ export function BuilderApp() {
 
       <div className="h-24 lg:hidden" />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#0b0d14]/90 p-3 backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#12394c]/92 p-3 backdrop-blur-xl lg:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <div>
             <p className="text-xs text-zinc-400">
               {selectedCount} من ٧ قطع
             </p>
-            <p className="font-heading text-xl font-bold text-amber-200" dir="ltr">
+            <p className="font-heading text-xl font-bold text-cyan-100" dir="ltr">
               {formatPrice(total)}
             </p>
           </div>
@@ -290,7 +298,7 @@ export function BuilderApp() {
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="w-full bg-[#12141c] sm:max-w-md">
+        <SheetContent side="left" className="w-full bg-[#164a61] sm:max-w-md">
           <SheetHeader className="px-4 pt-4">
             <SheetTitle>تجميعتك</SheetTitle>
           </SheetHeader>
