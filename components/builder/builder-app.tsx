@@ -65,18 +65,18 @@ export function BuilderApp() {
 
     if (incompatibilityReason(product, selected)) return;
 
-    setSelection((current) => {
-      const next = { ...current, [product.category]: product.id };
-      const idx = CATEGORY_ORDER.indexOf(product.category);
-      for (let i = idx + 1; i < CATEGORY_ORDER.length; i++) {
-        const key = CATEGORY_ORDER[i];
-        if (!next[key]) {
-          queueMicrotask(() => setCategory(key));
-          break;
-        }
+    const next = { ...selection, [product.category]: product.id };
+    setSelection(next);
+
+    const idx = CATEGORY_ORDER.indexOf(product.category);
+    for (let i = idx + 1; i < CATEGORY_ORDER.length; i++) {
+      const key = CATEGORY_ORDER[i];
+      if (!next[key]) {
+        setCategory(key);
+        setQuery("");
+        break;
       }
-      return next;
-    });
+    }
   }
 
   function goToCategory(key: Category) {
@@ -281,7 +281,12 @@ export function BuilderApp() {
         </aside>
       </div>
 
-      <div className="mobile-safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 shadow-[0_-8px_24px_rgb(15_36_48_/8%)] backdrop-blur-md lg:hidden">
+      <div
+        className={cn(
+          "mobile-safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-[0_-8px_24px_rgb(15_36_48_/8%)] backdrop-blur-md transition-opacity lg:hidden",
+          sheetOpen && "pointer-events-none opacity-0"
+        )}
+      >
         <div className="mx-auto max-w-7xl px-3 pt-2">
           <div className="mb-2 flex items-center gap-1">
             {CATEGORY_ORDER.map((key) => (
@@ -303,7 +308,12 @@ export function BuilderApp() {
                 {formatPrice(total)}
               </p>
             </div>
-            <Button size="lg" className="h-11 flex-1 text-base" onClick={() => setSheetOpen(true)}>
+            <Button
+              type="button"
+              size="lg"
+              className="relative z-10 h-11 flex-1 touch-manipulation text-base"
+              onClick={() => setSheetOpen(true)}
+            >
               عرض التجميعة
             </Button>
           </div>

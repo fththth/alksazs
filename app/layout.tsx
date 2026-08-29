@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import { CatalogProvider } from "@/components/catalog-provider";
@@ -15,6 +15,12 @@ export const metadata: Metadata = {
   title: "القزاز لخدمات الحاسبات",
   description:
     "جهّز حاسبك من القزاز لخدمات الحاسبات: معالج، مذربورد، رامات، كرت شاشة، تخزين، كولر، مزود طاقة، وكيس — والسعر الإجمالي يطلع مباشرة.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

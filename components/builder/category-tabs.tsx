@@ -55,7 +55,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
       {/* Mobile: horizontal scroll with large touch targets */}
       <div
         ref={scrollRef}
-        className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:hidden"
+        className="flex flex-nowrap gap-2 overflow-x-auto pb-1 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden"
       >
         {CATEGORY_ORDER.map((key) => {
           const item = CATEGORY_META[key];
@@ -84,7 +84,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
       </div>
 
       {/* Desktop: compact grid */}
-      <div className="hidden gap-1 sm:grid sm:grid-cols-8">
+      <div className="hidden gap-1 md:grid md:grid-cols-8">
         {CATEGORY_ORDER.map((key) => {
           const item = CATEGORY_META[key];
           const Icon = item.icon;
