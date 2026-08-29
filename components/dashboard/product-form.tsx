@@ -49,8 +49,8 @@ function ChipGroup({
               className={cn(
                 "rounded-full border px-3 py-1.5 text-sm transition",
                 active
-                  ? "border-white/40 bg-white/15 text-white"
-                  : "border-white/10 bg-white/4 text-zinc-300 hover:bg-white/8"
+                  ? "border-primary/30 bg-primary/10 text-primary font-medium"
+                  : "border-border bg-background text-muted-foreground hover:border-primary/20 hover:bg-muted"
               )}
             >
               {option.label}
@@ -174,7 +174,7 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
           type="checkbox"
           checked={product.available}
           onChange={(event) => update("available", event.target.checked)}
-          className="size-4 accent-cyan-400"
+          className="size-4 accent-primary"
         />
         ظاهرة للزبون
       </label>

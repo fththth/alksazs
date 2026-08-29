@@ -8,10 +8,13 @@ import {
   RefreshCcw,
   Search,
 } from "lucide-react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { BrandMark } from "@/components/brand-mark";
+import { BuildSummary } from "@/components/builder/build-summary";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import {
   buildIssues,
@@ -22,11 +25,9 @@ import {
 } from "@/lib/compatibility";
 import { formatPrice, formatStock } from "@/lib/format";
 import type { BuildSelection, Category, Product } from "@/lib/types";
-import { BuildSummary } from "@/components/builder/build-summary";
 import { useCatalog } from "@/hooks/use-catalog";
 import { readStoredBuild, writeStoredBuild } from "@/lib/build-storage";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 
 const EMPTY_PRODUCTS: Product[] = [];
 
@@ -77,7 +78,7 @@ export function BuilderApp() {
   if (loading && !catalog) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-        <Loader2 className="size-8 animate-spin text-cyan-200" />
+        <Loader2 className="size-8 animate-spin text-primary" />
         <p>قاعدين نجهّز القطع...</p>
       </div>
     );
@@ -86,8 +87,8 @@ export function BuilderApp() {
   if (error || !catalog) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
-        <AlertTriangle className="size-10 text-cyan-200" />
-        <p className="text-lg text-white">{error ?? "صار خطأ غير متوقع."}</p>
+        <AlertTriangle className="size-10 text-primary" />
+        <p className="text-lg text-foreground">{error ?? "صار خطأ غير متوقع."}</p>
         <Button onClick={() => void reload()}>
           <RefreshCcw />
           إعادة المحاولة
@@ -100,39 +101,47 @@ export function BuilderApp() {
   const CategoryIcon = meta.icon;
 
   return (
-    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
-      <section className="relative overflow-hidden rounded-3xl border border-white/20 shadow-[0_24px_60px_rgba(8,40,56,0.35)]">
-        <div className="relative min-h-[320px] sm:min-h-[380px] lg:min-h-[440px]">
-          <Image
-            src="/brand/splash.jpg"
-            alt="شعار القزاز لخدمات الحاسبات"
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 1280px"
-            quality={75}
-            className="object-cover object-[center_22%]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#12394c]/90 via-[#1a5670]/35 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
-            <h1 className="max-w-2xl font-heading text-2xl font-bold leading-tight text-white sm:text-4xl">
+    <div className="page-shell">
+      <section className="surface-card overflow-hidden">
+        <div className="grid md:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="flex flex-col justify-center gap-4 p-6 sm:p-8">
+            <div className="flex items-center gap-3">
+              <BrandMark className="size-14" size={112} />
+              <div>
+                <p className="text-sm font-semibold text-primary">القزاز لخدمات الحاسبات</p>
+                <p className="text-xs text-muted-foreground">تجميعة احترافية بأسعار واضحة</p>
+              </div>
+            </div>
+            <h1 className="max-w-xl font-heading text-2xl font-bold leading-tight text-foreground sm:text-3xl">
               جهّز حاسبك قطعة قطعة، والسعر يطلع لك مباشرة.
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-cyan-50/90 sm:text-base sm:leading-8">
+            <p className="max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
               اختَر المعالج، المذربود، الرامات، كرت الشاشة، التخزين، الكولر، والكيس.
               نراجع التوافق ونحسبلك السعر الإجمالي قبل لا تطلب.
             </p>
             {catalog.settings.shopNote ? (
-              <p className="mt-3 max-w-xl text-sm text-white/75">
+              <p className="max-w-xl rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
                 {catalog.settings.shopNote}
               </p>
             ) : null}
           </div>
+          <div className="relative hidden min-h-[220px] md:block">
+            <Image
+              src="/brand/splash.jpg"
+              alt=""
+              fill
+              sizes="300px"
+              quality={80}
+              className="object-cover object-[center_20%]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-l from-transparent to-card/20" />
+          </div>
         </div>
       </section>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0">
-          <div className="flex gap-2 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="surface-card min-w-0 p-4 sm:p-5">
+          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {CATEGORY_ORDER.map((key) => {
               const item = CATEGORY_META[key];
               const Icon = item.icon;
@@ -146,46 +155,39 @@ export function BuilderApp() {
                     setCategory(key);
                     setQuery("");
                   }}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-sm transition",
-                    active
-                      ? "border-white/35 bg-white/15 text-white"
-                      : "border-white/8 bg-white/3 text-zinc-300 hover:border-white/16 hover:bg-white/6"
-                  )}
+                  className={cn("chip flex items-center gap-2", active ? "chip-active" : "chip-idle")}
                 >
                   <Icon className="size-4" />
                   {item.label}
-                  {chosen ? (
-                    <span className="size-1.5 rounded-full bg-emerald-400" />
-                  ) : null}
+                  {chosen ? <span className="size-1.5 rounded-full bg-emerald-500" /> : null}
                 </button>
               );
             })}
           </div>
 
-          <div className="mt-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-5 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-white">
-                <CategoryIcon className="size-5" />
-                <h2 className="font-heading text-2xl font-semibold">{meta.label}</h2>
+              <div className="flex items-center gap-2 text-foreground">
+                <CategoryIcon className="size-5 text-primary" />
+                <h2 className="font-heading text-xl font-semibold">{meta.label}</h2>
               </div>
-              <p className="mt-1 max-w-xl text-sm leading-7 text-zinc-400">
+              <p className="mt-1 max-w-xl text-sm leading-7 text-muted-foreground">
                 {meta.hint}
               </p>
             </div>
             <div className="relative w-full sm:max-w-xs">
-              <Search className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-zinc-500" />
+              <Search className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="ابحث بالموديل أو الشركة"
-                className="h-10 bg-white/4 pr-8"
+                className="h-10 bg-background pr-8"
               />
             </div>
           </div>
 
           {visible.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-white/12 bg-white/3 px-6 py-16 text-center text-zinc-400">
+            <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center text-muted-foreground">
               ماكو قطع بهالتصنيف حالياً
               {query ? " مطابقة للبحث" : ""}. تقدر تضيف من لوحة التحكم.
             </div>
@@ -202,20 +204,20 @@ export function BuilderApp() {
                       disabled={out}
                       onClick={() => pick(product)}
                       className={cn(
-                        "flex w-full flex-col gap-3 rounded-2xl border p-4 text-right transition sm:flex-row sm:items-center sm:justify-between",
+                        "flex w-full flex-col gap-3 rounded-xl border p-4 text-right transition sm:flex-row sm:items-center sm:justify-between",
                         chosen
-                          ? "border-white/40 bg-white/12"
-                          : "border-white/8 bg-white/3 hover:border-cyan-200/35 hover:bg-white/6",
+                          ? "border-primary/40 bg-primary/5 shadow-sm"
+                          : "border-border bg-background hover:border-primary/25 hover:bg-muted/30",
                         out && "opacity-50"
                       )}
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-heading text-base font-semibold text-white">
+                          <p className="font-heading text-base font-semibold text-foreground">
                             {product.brand} {product.name}
                           </p>
                           {chosen ? (
-                            <Badge className="bg-emerald-400/20 text-emerald-200">
+                            <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
                               <Check />
                               مختار
                             </Badge>
@@ -228,31 +230,23 @@ export function BuilderApp() {
                           ) : null}
                           {out ? <Badge variant="outline">نفد</Badge> : null}
                         </div>
-                        <p className="mt-1 text-sm leading-7 text-zinc-400">
+                        <p className="mt-1 text-sm leading-7 text-muted-foreground">
                           {product.description}
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-zinc-500">
-                          {product.specs.socket ? (
-                            <span>سوكت {product.specs.socket}</span>
-                          ) : null}
-                          {product.specs.ramType ? (
-                            <span>{product.specs.ramType}</span>
-                          ) : null}
-                          {product.specs.formFactor ? (
-                            <span>{product.specs.formFactor}</span>
-                          ) : null}
-                          {product.specs.capacity ? (
-                            <span>{product.specs.capacity}</span>
-                          ) : null}
+                        <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          {product.specs.socket ? <span>سوكت {product.specs.socket}</span> : null}
+                          {product.specs.ramType ? <span>{product.specs.ramType}</span> : null}
+                          {product.specs.formFactor ? <span>{product.specs.formFactor}</span> : null}
+                          {product.specs.capacity ? <span>{product.specs.capacity}</span> : null}
                           {product.specs.speed ? <span>{product.specs.speed}</span> : null}
                           <span>{formatStock(product.stock)}</span>
                         </div>
                         {reason ? (
-                          <p className="mt-2 text-xs text-rose-300">{reason}</p>
+                          <p className="mt-2 text-xs text-destructive">{reason}</p>
                         ) : null}
                       </div>
                       <p
-                        className="shrink-0 font-heading text-xl font-bold text-cyan-100"
+                        className="shrink-0 font-heading text-lg font-bold text-primary"
                         dir="ltr"
                       >
                         {formatPrice(product.price)}
@@ -283,13 +277,11 @@ export function BuilderApp() {
 
       <div className="h-24 lg:hidden" />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#12394c]/92 p-3 backdrop-blur-xl lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
           <div>
-            <p className="text-xs text-zinc-400">
-              {selectedCount} من ٧ قطع
-            </p>
-            <p className="font-heading text-xl font-bold text-cyan-100" dir="ltr">
+            <p className="text-xs text-muted-foreground">{selectedCount} من ٧ قطع</p>
+            <p className="font-heading text-xl font-bold text-primary" dir="ltr">
               {formatPrice(total)}
             </p>
           </div>
@@ -300,7 +292,7 @@ export function BuilderApp() {
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="w-full bg-[#164a61] sm:max-w-md">
+        <SheetContent side="left" className="w-full bg-card sm:max-w-md">
           <SheetHeader className="px-4 pt-4">
             <SheetTitle>تجميعتك</SheetTitle>
           </SheetHeader>

@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ar"
       dir="rtl"
-      className={`${cairo.variable} dark h-full antialiased`}
+      className={`${cairo.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className={`${cairo.className} min-h-full flex flex-col bg-background text-foreground`}>

@@ -14,7 +14,7 @@ export function BrandMark({
       alt=""
       width={size}
       height={size}
-      className={cn("object-contain drop-shadow-[0_8px_18px_rgba(8,30,44,0.35)]", className)}
+      className={cn("object-contain", className)}
     />
   );
 }

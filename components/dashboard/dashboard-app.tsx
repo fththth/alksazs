@@ -38,6 +38,7 @@ import { formatPrice, formatStock } from "@/lib/format";
 import type { Catalog, Category, Product, ShopSettings } from "@/lib/types";
 import { ProductForm, emptyProduct } from "@/components/dashboard/product-form";
 import { useCatalog } from "@/hooks/use-catalog";
+import { cn } from "@/lib/utils";
 
 const EMPTY_PRODUCTS: Product[] = [];
 const DEFAULT_SETTINGS: ShopSettings = { whatsapp: "", shopNote: "" };
@@ -164,7 +165,7 @@ export function DashboardApp() {
   if (loading && !catalog) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 py-24 text-muted-foreground">
-        <Loader2 className="size-8 animate-spin text-cyan-200" />
+        <Loader2 className="size-8 animate-spin text-primary" />
         <p>نجهّز لوحة التحكم...</p>
       </div>
     );
@@ -173,8 +174,8 @@ export function DashboardApp() {
   if (error || !catalog) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
-        <AlertTriangle className="size-10 text-cyan-200" />
-        <p className="text-lg text-white">{error}</p>
+        <AlertTriangle className="size-10 text-primary" />
+        <p className="text-lg text-foreground">{error}</p>
         <Button onClick={() => void reload()}>
           <RefreshCcw />
           إعادة المحاولة
@@ -184,14 +185,14 @@ export function DashboardApp() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:py-8">
+    <div className="page-shell">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs tracking-[0.2em] text-cyan-100/70">لوحة التحكم</p>
-          <h1 className="mt-1 font-heading text-3xl font-bold text-white">
+          <p className="text-xs font-medium text-primary">لوحة التحكم</p>
+          <h1 className="mt-1 font-heading text-2xl font-bold text-foreground sm:text-3xl">
             مخزون القزاز
           </h1>
-          <p className="mt-2 max-w-xl text-sm leading-7 text-zinc-400">
+          <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
             أضف القطع، عدّل الأسعار، وحدد المتوفر. الزبون يشوف التحديث على صفحة التجميعة مباشرة.
           </p>
         </div>
@@ -234,9 +235,9 @@ export function DashboardApp() {
         />
       </div>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-white/3 p-5">
-        <h2 className="font-heading text-lg font-semibold text-white">إعدادات المحل</h2>
-        <p className="mt-1 text-sm text-zinc-400">
+      <section className="surface-card mt-6 p-5">
+        <h2 className="font-heading text-lg font-semibold text-foreground">إعدادات المحل</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           رقم الواتساب يظهر زر الطلب للزبون. اكتب الرقم مع مفتاح الدولة بدون +.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-end">
@@ -274,7 +275,7 @@ export function DashboardApp() {
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#164a61]/85 p-4 sm:p-5">
+      <section className="surface-card mt-6 p-4 sm:p-5">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex gap-2 overflow-x-auto pb-1">
             <FilterChip
@@ -297,13 +298,13 @@ export function DashboardApp() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="بحث في المخزون"
-              className="h-10 bg-white/4 pr-8"
+              className="h-10 bg-background pr-8"
             />
           </div>
         </div>
 
         {visible.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-dashed border-white/12 px-6 py-16 text-center text-zinc-400">
+          <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center text-muted-foreground">
             ماكو نتائج. جرّب تصنيف ثاني أو أضف قطعة جديدة.
           </div>
         ) : (
@@ -323,10 +324,10 @@ export function DashboardApp() {
                 {visible.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
-                      <p className="font-medium text-white">
+                      <p className="font-medium text-foreground">
                         {product.brand} {product.name}
                       </p>
-                      <p className="max-w-md truncate text-xs text-zinc-500">
+                      <p className="max-w-md truncate text-xs text-muted-foreground">
                         {product.description}
                       </p>
                     </TableCell>
@@ -335,7 +336,7 @@ export function DashboardApp() {
                     <TableCell>{formatStock(product.stock)}</TableCell>
                     <TableCell>
                       {product.available && product.stock > 0 ? (
-                        <Badge className="bg-emerald-400/15 text-emerald-200">معروض</Badge>
+                        <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">معروض</Badge>
                       ) : (
                         <Badge variant="outline">مخفي</Badge>
                       )}
@@ -443,18 +444,20 @@ function StatCard({
   ltr?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/4 p-4">
-      <div className="flex items-center gap-2 text-sm text-zinc-400">
-        <Icon className="size-4 text-cyan-200" />
+    <div className="surface-card p-4">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+          <Icon className="size-4 text-primary" />
+        </span>
         {label}
       </div>
       <p
-        className="mt-2 font-heading text-2xl font-bold text-white"
+        className="mt-3 font-heading text-2xl font-bold text-foreground"
         dir={ltr ? "ltr" : undefined}
       >
         {value}
       </p>
-      <p className="mt-1 text-xs text-zinc-500">{hint}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
     </div>
   );
 }
@@ -472,11 +475,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={
-        active
-          ? "shrink-0 rounded-full border border-white/35 bg-white/15 px-3 py-1.5 text-sm text-white"
-          : "shrink-0 rounded-full border border-white/8 bg-white/3 px-3 py-1.5 text-sm text-zinc-300 hover:bg-white/6"
-      }
+      className={cn("chip", active ? "chip-active" : "chip-idle")}
     >
       {label}
     </button>
