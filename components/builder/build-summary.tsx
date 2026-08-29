@@ -55,7 +55,7 @@ function PartsList({
   embedded?: boolean;
 }) {
   return (
-    <ul className="space-y-2">
+    <ul className={cn("space-y-2", embedded && "space-y-1.5")}>
       {CATEGORY_ORDER.map((key) => {
         const items = getProductsForCategory(selected, key);
         const meta = CATEGORY_META[key];
@@ -69,7 +69,7 @@ function PartsList({
               onClick={() => onEditCategory?.(key)}
               className={cn(
                 "flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 text-right transition hover:border-primary/25 hover:bg-muted/40",
-                embedded ? "min-h-[4.25rem] px-3 py-3 active:bg-muted/60" : "px-3 py-2.5"
+                embedded ? "min-h-[3.75rem] px-3 py-2.5 active:bg-muted/60" : "px-3 py-2.5"
               )}
             >
               <div className="min-w-0 flex-1">
@@ -217,7 +217,7 @@ export function BuildSummary({
   }
 
   return (
-    <div className={embedded ? "pb-2" : "surface-card p-5"}>
+    <div className={embedded ? "pb-1" : "surface-card p-5"}>
       {!embedded ? (
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -232,10 +232,7 @@ export function BuildSummary({
           </Button>
         </div>
       ) : (
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">
-            {selectedCount} من {TOTAL_PARTS} تصنيفات
-          </p>
+        <div className="mb-2 flex items-center justify-end">
           <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={onReset} disabled={empty}>
             <RotateCcw />
             مسح الكل
@@ -245,14 +242,23 @@ export function BuildSummary({
 
       {isComplete ? (
         <>
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
-            <CheckCircle2 className="size-5 shrink-0 text-primary" />
-            <p className="text-sm text-primary">
-              {isReady
-                ? "اكتملت كل القطع — جاهزة للنسخ والطباعة"
-                : "اكتملت كل القطع — راجع التنبيهات قبل النسخ أو الطباعة"}
+          {!embedded ? (
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
+              <CheckCircle2 className="size-5 shrink-0 text-primary" />
+              <p className="text-sm text-primary">
+                {isReady
+                  ? "اكتملت كل القطع — جاهزة للنسخ والطباعة"
+                  : "اكتملت كل القطع — راجع التنبيهات قبل النسخ أو الطباعة"}
+              </p>
+            </div>
+          ) : isReady ? (
+            <p className="mb-2 flex items-center gap-1.5 text-xs text-primary">
+              <CheckCircle2 className="size-3.5 shrink-0" />
+              التجميعة جاهزة للنسخ والطباعة
             </p>
-          </div>
+          ) : (
+            <p className="mb-2 text-xs text-destructive">راجع التنبيهات قبل النسخ أو الطباعة</p>
+          )}
 
           <div className={embedded ? "mt-0" : "mt-4"}>
             <PartsList
@@ -265,15 +271,17 @@ export function BuildSummary({
             />
           </div>
 
-          <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-center sm:px-5 sm:py-5">
-            <p className="text-sm text-muted-foreground">السعر الإجمالي</p>
-            <p className="mt-1 font-heading text-3xl font-bold text-primary sm:text-4xl" dir="ltr">
-              {formatPrice(total)}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">الأسعار بـ IQD — بدون أسعار فردية</p>
-          </div>
+          {!embedded ? (
+            <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-center sm:px-5 sm:py-5">
+              <p className="text-sm text-muted-foreground">السعر الإجمالي</p>
+              <p className="mt-1 font-heading text-3xl font-bold text-primary sm:text-4xl" dir="ltr">
+                {formatPrice(total)}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">الأسعار بـ IQD — بدون أسعار فردية</p>
+            </div>
+          ) : null}
 
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <div className={cn("grid grid-cols-2 gap-2 sm:flex sm:flex-wrap", embedded ? "mt-3" : "mt-4")}>
             <Button
               variant="outline"
               size="default"
@@ -336,21 +344,29 @@ export function BuildSummary({
             </p>
           ) : (
             <>
-              <div className="mt-5 border-t border-border pt-4">
-                <div className="flex items-end justify-between">
-                  <span className="text-sm text-muted-foreground">السعر الإجمالي</span>
-                  <span className="font-heading text-2xl font-bold text-primary" dir="ltr">
-                    {formatPrice(total)}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+              {!embedded ? (
+                <>
+                  <div className="mt-5 border-t border-border pt-4">
+                    <div className="flex items-end justify-between">
+                      <span className="text-sm text-muted-foreground">السعر الإجمالي</span>
+                      <span className="font-heading text-2xl font-bold text-primary" dir="ltr">
+                        {formatPrice(total)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {selectedCount} من {TOTAL_PARTS} — أكمل الباقي للنسخ والطباعة
+                    </p>
+                  </div>
+
+                  <p className="mt-3 rounded-lg bg-muted/40 px-3 py-2.5 text-xs leading-6 text-muted-foreground">
+                    النسخ والطباعة يتفعلون بعد اختيار جميع القطع ({TOTAL_PARTS}/{TOTAL_PARTS}).
+                  </p>
+                </>
+              ) : selectedCount > 0 ? (
+                <p className="mt-2 text-xs text-muted-foreground">
                   {selectedCount} من {TOTAL_PARTS} — أكمل الباقي للنسخ والطباعة
                 </p>
-              </div>
-
-              <p className="mt-3 rounded-lg bg-muted/40 px-3 py-2.5 text-xs leading-6 text-muted-foreground">
-                النسخ والطباعة يتفعلون بعد اختيار جميع القطع ({TOTAL_PARTS}/{TOTAL_PARTS}).
-              </p>
+              ) : null}
             </>
           )}
         </>
@@ -374,7 +390,10 @@ export function BuildSummary({
           )}`}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 sm:h-10"
+          className={cn(
+            "inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 sm:h-10",
+            embedded ? "mt-3" : "mt-4"
+          )}
         >
           <MessageCircle className="size-4" />
           اطلب التجميعة واتساب

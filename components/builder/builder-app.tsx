@@ -390,7 +390,7 @@ export function BuilderApp() {
         <SheetContent
           side="bottom"
           showCloseButton={false}
-          className="flex h-[min(82dvh,680px)] flex-col rounded-t-2xl border-t p-0 pb-24 lg:hidden"
+          className="fixed inset-x-0 top-14 bottom-[calc(4.625rem+max(0.75rem,env(safe-area-inset-bottom)))] z-[65] flex max-h-none flex-col gap-0 rounded-t-2xl border-t p-0 lg:hidden"
         >
           <div className="shrink-0 border-b border-border px-4 pb-3 pt-2">
             <div
@@ -400,24 +400,41 @@ export function BuilderApp() {
             <SheetHeader className="gap-1 p-0 text-center">
               <SheetTitle className="font-heading text-lg">مواصفات التجميعة</SheetTitle>
               <p className="text-xs text-muted-foreground">
-                اضغط «تعديل» على أي قطعة للرجوع وتغييرها
+                {selectedCount} من {CATEGORY_ORDER.length} — اضغط «تعديل» لتغيير أي قطعة
               </p>
             </SheetHeader>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-2">
-            <BuildSummary
-              embedded
-              selected={selected}
-              total={total}
-              issues={issues}
-              psu={psu}
-              selectedCount={selectedCount}
-              whatsapp={catalog.settings.whatsapp}
-              onClearPart={clearPart}
-              onRemoveProduct={removeProduct}
-              onReset={resetBuild}
-              onEditCategory={goToCategory}
-            />
+
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2 [-webkit-overflow-scrolling:touch]">
+              <BuildSummary
+                embedded
+                selected={selected}
+                total={total}
+                issues={issues}
+                psu={psu}
+                selectedCount={selectedCount}
+                whatsapp={catalog.settings.whatsapp}
+                onClearPart={clearPart}
+                onRemoveProduct={removeProduct}
+                onReset={resetBuild}
+                onEditCategory={goToCategory}
+              />
+            </div>
+
+            <div className="shrink-0 border-t border-border bg-card px-4 py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">السعر الإجمالي</p>
+                  <p className="font-heading text-2xl font-bold text-primary" dir="ltr">
+                    {formatPrice(total)}
+                  </p>
+                </div>
+                <p className="max-w-[9rem] text-left text-[11px] leading-5 text-muted-foreground">
+                  مرّر فوق لعرض كل القطع والإجراءات
+                </p>
+              </div>
+            </div>
           </div>
         </SheetContent>
       </Sheet>

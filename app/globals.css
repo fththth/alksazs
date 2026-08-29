@@ -147,6 +147,9 @@
   .mobile-safe-bottom {
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
+  .mobile-builder-bar-height {
+    height: calc(4.625rem + max(0.75rem, env(safe-area-inset-bottom)));
+  }
   .surface-card {
     @apply rounded-2xl border border-border bg-card shadow-sm;
   }
