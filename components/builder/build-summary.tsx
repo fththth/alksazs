@@ -1,8 +1,17 @@
 "use client";
 
-import { MessageCircle, RotateCcw, X, Zap } from "lucide-react";
+import { useState } from "react";
+import { Copy, MessageCircle, Printer, RotateCcw, X, Zap } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
+import {
+  buildSpecsPlainText,
+  copyBuildSpecs,
+  printBuildSpecs,
+  productFullName,
+  productSpecEntries,
+} from "@/lib/build-specs";
 import { formatPrice } from "@/lib/format";
 import type { Category, Product } from "@/lib/types";
 import type { CompatIssue } from "@/lib/compatibility";
@@ -32,18 +41,7 @@ type Props = {
 };
 
 function buildWhatsappText(selected: Partial<Record<Category, Product>>, total: number) {
-  const lines = ["مرحبا، أريد تجميعة من القزاز لخدمات الحاسبات:", ""];
-  for (const key of CATEGORY_ORDER) {
-    const item = selected[key];
-    const label = CATEGORY_META[key].label;
-    lines.push(
-      item
-        ? `• ${label}: ${item.brand} ${item.name} — ${formatPrice(item.price)}`
-        : `• ${label}: لم يُختر`
-    );
-  }
-  lines.push("", `السعر الإجمالي: ${formatPrice(total)}`);
-  return lines.join("\n");
+  return buildSpecsPlainText({ selected, total, psu: null, issues: [] });
 }
 
 export function BuildSummary({
@@ -56,8 +54,31 @@ export function BuildSummary({
   onClearPart,
   onReset,
 }: Props) {
+  const [copying, setCopying] = useState(false);
   const empty = selectedCount === 0;
   const waNumber = whatsapp.replace(/[^\d]/g, "");
+  const exportInput = { selected, total, psu, issues };
+
+  async function handleCopy() {
+    if (empty) return;
+    setCopying(true);
+    try {
+      await copyBuildSpecs(exportInput);
+      toast.success("اننسخت المواصفات الكاملة");
+    } catch {
+      toast.error("ما قدرنا ننسخ المواصفات. جرّب مرة ثانية.");
+    } finally {
+      setCopying(false);
+    }
+  }
+
+  function handlePrint() {
+    if (empty) return;
+    const opened = printBuildSpecs(exportInput);
+    if (!opened) {
+      toast.error("الطباعة محظورة. اسمح بالنوافذ المنبثقة وجرب مرة ثانية.");
+    }
+  }
 
   return (
     <div className="surface-card p-5">
@@ -65,7 +86,7 @@ export function BuildSummary({
         <div>
           <p className="text-xs font-medium text-primary">ملخص التجميعة</p>
           <h3 className="mt-1 font-heading text-lg font-semibold text-foreground">
-            جهازك قيد التجهيز
+            مواصفات الجهاز
           </h3>
         </div>
         <Button variant="ghost" size="sm" onClick={onReset} disabled={empty}>
@@ -74,36 +95,74 @@ export function BuildSummary({
         </Button>
       </div>
 
-      <ul className="mt-4 space-y-2">
+      {!empty ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => void handleCopy()} disabled={copying}>
+            <Copy />
+            نسخ المواصفات
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer />
+            طباعة
+          </Button>
+        </div>
+      ) : null}
+
+      <ul className="mt-4 space-y-3">
         {CATEGORY_ORDER.map((key) => {
           const item = selected[key];
           const meta = CATEGORY_META[key];
           const Icon = meta.icon;
+          const specs = item ? productSpecEntries(item) : [];
+
           return (
             <li
               key={key}
-              className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5"
+              className="rounded-xl border border-border bg-muted/20 px-3 py-3"
             >
-              <div className="min-w-0">
-                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Icon className="size-3.5" />
-                  {meta.label}
-                </p>
-                {item ? (
-                  <p className="mt-0.5 truncate text-sm font-medium text-foreground">
-                    {item.brand} {item.name}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-primary">
+                    <Icon className="size-3.5" />
+                    {meta.label}
                   </p>
-                ) : (
-                  <p className="mt-0.5 text-sm text-muted-foreground">ما انختار بعد</p>
-                )}
-              </div>
-              {item ? (
-                <div className="flex shrink-0 items-center gap-1">
-                  <span className="text-sm font-medium text-primary" dir="ltr">
-                    {formatPrice(item.price)}
-                  </span>
-                  <ClearIconButton onClick={() => onClearPart(key)} />
+                  {item ? (
+                    <>
+                      <p className="mt-1 text-sm font-semibold leading-6 text-foreground break-words">
+                        {productFullName(item)}
+                      </p>
+                      {item.description ? (
+                        <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                          {item.description}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <p className="mt-1 text-sm text-muted-foreground">ما انختار بعد</p>
+                  )}
                 </div>
+                {item ? (
+                  <div className="flex shrink-0 items-start gap-1">
+                    <span className="text-sm font-bold text-primary" dir="ltr">
+                      {formatPrice(item.price)}
+                    </span>
+                    <ClearIconButton onClick={() => onClearPart(key)} />
+                  </div>
+                ) : null}
+              </div>
+
+              {item && specs.length > 0 ? (
+                <dl className="mt-3 grid grid-cols-2 gap-2">
+                  {specs.map((spec) => (
+                    <div
+                      key={`${key}-${spec.label}`}
+                      className="rounded-lg bg-background px-2.5 py-1.5 text-xs"
+                    >
+                      <dt className="text-muted-foreground">{spec.label}</dt>
+                      <dd className="mt-0.5 font-medium text-foreground">{spec.value}</dd>
+                    </div>
+                  ))}
+                </dl>
               ) : null}
             </li>
           );
@@ -132,7 +191,7 @@ export function BuildSummary({
 
       {empty ? (
         <p className="mt-4 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-3 text-sm leading-7 text-muted-foreground">
-          ابدأ بالمعالج، وبعدها المذربود. السعر الإجمالي يظهر هنا كل ما تضيف قطعة.
+          ابدأ بالمعالج، وبعدها المذربود. المواصفات الكاملة تظهر هنا مع إمكانية النسخ والطباعة.
         </p>
       ) : null}
 
