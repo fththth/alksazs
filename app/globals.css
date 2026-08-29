@@ -83,6 +83,40 @@
   --sidebar-ring: #1a7089;
 }
 
+.dark {
+  --background: #0c151a;
+  --foreground: #e6eef2;
+  --card: #121f26;
+  --card-foreground: #e6eef2;
+  --popover: #121f26;
+  --popover-foreground: #e6eef2;
+  --primary: #3eb0cb;
+  --primary-foreground: #071318;
+  --secondary: #1a2d36;
+  --secondary-foreground: #b8d4df;
+  --muted: #162229;
+  --muted-foreground: #8fa8b5;
+  --accent: #1a3340;
+  --accent-foreground: #b8d4df;
+  --destructive: #f07171;
+  --border: #243842;
+  --input: #243842;
+  --ring: #3eb0cb;
+  --chart-1: #3eb0cb;
+  --chart-2: #2a8fa8;
+  --chart-3: #1a7089;
+  --chart-4: #124f61;
+  --chart-5: #1a2d36;
+  --sidebar: #121f26;
+  --sidebar-foreground: #e6eef2;
+  --sidebar-primary: #3eb0cb;
+  --sidebar-primary-foreground: #071318;
+  --sidebar-accent: #162229;
+  --sidebar-accent-foreground: #b8d4df;
+  --sidebar-border: #243842;
+  --sidebar-ring: #3eb0cb;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -92,6 +126,11 @@
     background-image:
       radial-gradient(900px 420px at 100% -5%, rgb(26 112 137 / 8%), transparent 55%),
       radial-gradient(700px 360px at -5% 100%, rgb(26 112 137 / 6%), transparent 50%);
+  }
+  .dark body {
+    background-image:
+      radial-gradient(900px 420px at 100% -5%, rgb(62 176 203 / 10%), transparent 55%),
+      radial-gradient(700px 360px at -5% 100%, rgb(26 112 137 / 8%), transparent 50%);
   }
   html {
     @apply font-sans;
@@ -116,5 +155,14 @@
   }
   .chip-idle {
     @apply border-border bg-background text-muted-foreground hover:border-primary/20 hover:bg-muted;
+  }
+  .badge-success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/80 dark:bg-emerald-950/40 dark:text-emerald-300;
+  }
+  .status-dot-done {
+    @apply bg-emerald-500 dark:bg-emerald-400;
+  }
+  .tab-done {
+    @apply border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-800/60 dark:bg-emerald-950/30;
   }
 }

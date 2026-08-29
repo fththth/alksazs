@@ -319,7 +319,7 @@ export function BuildSummary({
               </ul>
             </div>
           ) : selectedCount > 1 ? (
-            <p className="mt-4 text-sm text-emerald-700">القطع المختارة متوافقة لحد الآن.</p>
+            <p className="mt-4 text-sm text-emerald-700 dark:text-emerald-300">القطع المختارة متوافقة لحد الآن.</p>
           ) : null}
 
           {psu && !categoryHasSelection(selected, "psu") ? (
@@ -374,7 +374,7 @@ export function BuildSummary({
           )}`}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 sm:h-10"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 sm:h-10"
         >
           <MessageCircle className="size-4" />
           اطلب التجميعة واتساب

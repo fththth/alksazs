@@ -3,8 +3,10 @@ import { Cairo } from "next/font/google";
 import "./globals.css";
 import { CatalogProvider } from "@/components/catalog-provider";
 import { Providers } from "@/components/providers";
+import { ShopThemeSync } from "@/components/shop-theme-sync";
 import { SiteHeader } from "@/components/site-header";
 import { readCatalog } from "@/lib/catalog";
+import { parseThemeMode } from "@/lib/theme";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -25,17 +27,19 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const catalog = await readCatalog();
+  const themeMode = parseThemeMode(catalog.settings.themeMode);
 
   return (
     <html
       lang="ar"
       dir="rtl"
-      className={`${cairo.variable} h-full antialiased`}
+      className={`${cairo.variable} h-full antialiased${themeMode === "dark" ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className={`${cairo.className} min-h-full flex flex-col bg-background text-foreground`}>
         <Providers>
           <CatalogProvider initialCatalog={catalog}>
+            <ShopThemeSync />
             <SiteHeader />
             {children}
           </CatalogProvider>

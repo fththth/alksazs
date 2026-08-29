@@ -507,6 +507,7 @@ export const seedCatalog: Catalog = {
     whatsapp: "",
     shopNote:
       "الأسعار بـ IQD. التجميعة تُراجع قبل التجهيز، والتوصيل داخل العراق حسب المدينة.",
+    themeMode: "light",
   },
   products,
 };

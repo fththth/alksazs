@@ -4,14 +4,17 @@ import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   Loader2,
+  Moon,
   Package,
   Pencil,
   Plus,
   RefreshCcw,
   Search,
+  Sun,
   Trash2,
   Wallet,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,13 +38,13 @@ import {
 } from "@/components/ui/table";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import { formatPrice, formatStock } from "@/lib/format";
-import type { Catalog, Category, Product, ShopSettings } from "@/lib/types";
+import type { Catalog, Category, Product, ShopSettings, ThemeMode } from "@/lib/types";
 import { ProductForm, emptyProduct } from "@/components/dashboard/product-form";
 import { useCatalog } from "@/hooks/use-catalog";
 import { cn } from "@/lib/utils";
 
 const EMPTY_PRODUCTS: Product[] = [];
-const DEFAULT_SETTINGS: ShopSettings = { whatsapp: "", shopNote: "" };
+const DEFAULT_SETTINGS: ShopSettings = { whatsapp: "", shopNote: "", themeMode: "light" };
 
 export function DashboardApp() {
   const {
@@ -54,6 +57,7 @@ export function DashboardApp() {
     removeProductLocal,
     updateSettingsLocal,
   } = useCatalog();
+  const { setTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Category | "all">("all");
@@ -134,11 +138,20 @@ export function DashboardApp() {
       toast.success("انحفظت إعدادات المحل");
       setDraftSettings(null);
       updateSettingsLocal(saved);
+      setTheme(saved.themeMode);
     } catch {
       toast.error("ما انحفظت الإعدادات.");
     } finally {
       setSaving(false);
     }
+  }
+
+  function setThemeMode(mode: ThemeMode) {
+    setDraftSettings((current) => ({
+      ...(current ?? settings),
+      themeMode: mode,
+    }));
+    setTheme(mode);
   }
 
   async function restore() {
@@ -249,9 +262,41 @@ export function DashboardApp() {
       <section className="surface-card mt-6 p-5">
         <h2 className="font-heading text-lg font-semibold text-foreground">إعدادات المحل</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          رقم الواتساب يظهر زر الطلب للزبون. اكتب الرقم مع مفتاح الدولة بدون +.
+          رقم الواتساب يظهر زر الطلب للزبون. وضع العرض يتحكم بمظهر صفحة التجميعة للزبائن.
         </p>
-        <div className="mt-4 grid gap-4 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-end">
+
+        <div className="mt-4 grid gap-2">
+          <Label>وضع العرض للزبون</Label>
+          <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+            <button
+              type="button"
+              onClick={() => setThemeMode("light")}
+              className={cn(
+                "flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                settings.themeMode === "light" ? "chip-active" : "chip-idle"
+              )}
+            >
+              <Sun className="size-4" />
+              فاتح
+            </button>
+            <button
+              type="button"
+              onClick={() => setThemeMode("dark")}
+              className={cn(
+                "flex min-h-11 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition",
+                settings.themeMode === "dark" ? "chip-active" : "chip-idle"
+              )}
+            >
+              <Moon className="size-4" />
+              داكن
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            التغيير يظهر مباشرة. اضغط «حفظ الإعدادات» حتى يشوف الزبون نفس الوضع.
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-[220px_minmax(0,1fr)_auto] md:items-end">
           <div className="grid gap-2">
             <Label htmlFor="whatsapp">واتساب</Label>
             <Input
@@ -336,9 +381,7 @@ export function DashboardApp() {
                       </p>
                     </div>
                     {product.available && product.stock > 0 ? (
-                      <Badge className="shrink-0 border-emerald-200 bg-emerald-50 text-emerald-700">
-                        معروض
-                      </Badge>
+                      <Badge className="badge-success shrink-0">معروض</Badge>
                     ) : (
                       <Badge variant="outline" className="shrink-0">
                         مخفي
@@ -407,7 +450,7 @@ export function DashboardApp() {
                     <TableCell>{formatStock(product.stock)}</TableCell>
                     <TableCell>
                       {product.available && product.stock > 0 ? (
-                        <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">معروض</Badge>
+                        <Badge className="badge-success">معروض</Badge>
                       ) : (
                         <Badge variant="outline">مخفي</Badge>
                       )}

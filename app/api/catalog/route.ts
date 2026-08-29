@@ -7,6 +7,7 @@ import {
 } from "@/lib/catalog";
 import { parseProduct } from "@/lib/product-validation";
 import type { ShopSettings } from "@/lib/types";
+import { parseThemeMode } from "@/lib/theme";
 
 export async function GET() {
   const catalog = await readCatalog();
@@ -37,6 +38,7 @@ export async function PUT(request: Request) {
   const settings = await updateSettings({
     whatsapp: String(body.whatsapp ?? current.settings.whatsapp),
     shopNote: String(body.shopNote ?? current.settings.shopNote),
+    themeMode: parseThemeMode(body.themeMode ?? current.settings.themeMode),
   });
   return NextResponse.json(settings);
 }

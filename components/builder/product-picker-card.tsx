@@ -83,7 +83,7 @@ export function ProductPickerCard({
                   {product.brand} {product.name}
                 </p>
                 {chosen && !incompatible ? (
-                  <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                  <Badge className="badge-success">
                     <Check className="size-3" />
                     مختار
                   </Badge>

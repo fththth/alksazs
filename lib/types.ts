@@ -13,6 +13,7 @@ export type Category = (typeof CATEGORIES)[number];
 
 export type RamType = "DDR4" | "DDR5";
 export type FormFactor = "ATX" | "mATX" | "ITX";
+export type ThemeMode = "light" | "dark";
 
 export type ProductSpecs = {
   socket?: string;
@@ -40,6 +41,7 @@ export type Product = {
 export type ShopSettings = {
   whatsapp: string;
   shopNote: string;
+  themeMode: ThemeMode;
 };
 
 export type Catalog = {

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Catalog, Product, ShopSettings } from "@/lib/types";
 import { seedCatalog } from "@/lib/seed";
+import { parseThemeMode } from "@/lib/theme";
 
 const dataDir = path.join(process.cwd(), "data");
 const catalogPath = path.join(dataDir, "catalog.json");
@@ -66,6 +67,7 @@ export async function readCatalog(): Promise<Catalog> {
       settings: {
         whatsapp: parsed.settings?.whatsapp ?? "",
         shopNote: parsed.settings?.shopNote ?? seedCatalog.settings.shopNote,
+        themeMode: parseThemeMode(parsed.settings?.themeMode ?? seedCatalog.settings.themeMode),
       },
       products: Array.isArray(parsed.products) ? parsed.products : [],
     })

@@ -50,7 +50,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
               onClick={() => onSelect(key)}
               className={cn(
                 "h-1.5 flex-1 rounded-full transition",
-                done ? "bg-emerald-500" : active ? "bg-primary" : "bg-muted"
+                done ? "status-dot-done" : active ? "bg-primary" : "bg-muted"
               )}
             />
           );
@@ -77,12 +77,12 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
               className={cn(
                 "flex min-h-[4.25rem] w-[4.75rem] shrink-0 snap-start flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 text-[10px] font-medium transition",
                 active ? "chip-active shadow-sm" : "chip-idle",
-                chosen && !active ? "border-emerald-200/80 bg-emerald-50/50" : null
+                chosen && !active ? "tab-done" : null
               )}
             >
               <Icon className="size-4 shrink-0" />
               <span className="leading-tight">{item.tabLabel}</span>
-              {chosen ? <span className="size-1.5 rounded-full bg-emerald-500" /> : null}
+              {chosen ? <span className="status-dot-done size-1.5 rounded-full" /> : null}
             </button>
           );
         })}
@@ -110,7 +110,7 @@ export function CategoryTabs({ category, selected, onSelect }: Props) {
             >
               <Icon className="size-3 shrink-0" />
               <span className="truncate">{item.tabLabel}</span>
-              {chosen ? <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" /> : null}
+              {chosen ? <span className="status-dot-done size-1.5 shrink-0 rounded-full" /> : null}
             </button>
           );
         })}

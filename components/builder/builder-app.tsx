@@ -358,7 +358,7 @@ export function BuilderApp() {
                   key={key}
                   className={cn(
                     "h-1 flex-1 rounded-full",
-                    categoryHasSelection(selected, key) ? "bg-emerald-500" : "bg-muted"
+                    categoryHasSelection(selected, key) ? "status-dot-done" : "bg-muted"
                   )}
                 />
               ))}
