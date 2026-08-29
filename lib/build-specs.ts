@@ -1,5 +1,6 @@
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import { formatPrice } from "@/lib/format";
+import { savePrintBuild } from "@/lib/print-storage";
 import type { CompatIssue } from "@/lib/compatibility";
 import type { Category, Product } from "@/lib/types";
 
@@ -480,6 +481,12 @@ function withPrintScript(html: string) {
   return html.replace("</body>", `${PRINT_TRIGGER_SCRIPT}</body>`);
 }
 
+export function renderPrintDocument(html: string) {
+  document.open();
+  document.write(withPrintScript(html));
+  document.close();
+}
+
 function printInHiddenIframe(html: string) {
   const iframe = document.createElement("iframe");
   iframe.setAttribute("title", "طباعة تجميعة القزاز");
@@ -511,24 +518,22 @@ function printInHiddenIframe(html: string) {
 }
 
 export function printBuildSpecs(input: BuildExportInput) {
+  if (typeof window === "undefined") return false;
+
   const origin = window.location.origin;
   const html = buildPrintHtml(input, {
     logoUrl: `${origin}/brand/mark.png`,
     splashUrl: `${origin}/brand/splash.jpg`,
   });
-  const printableHtml = withPrintScript(html);
 
-  // Blob tab: works without document.write and shows a preview before printing.
-  const blob = new Blob([printableHtml], { type: "text/html;charset=utf-8" });
-  const blobUrl = URL.createObjectURL(blob);
-  const popup = window.open(blobUrl, "_blank");
-
-  if (popup) {
-    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 120_000);
-    return true;
+  try {
+    savePrintBuild(input);
+    const popup = window.open("/print", "_blank");
+    if (popup) return true;
+  } catch {
+    // sessionStorage blocked — use iframe fallback
   }
 
-  URL.revokeObjectURL(blobUrl);
   return printInHiddenIframe(html);
 }
 
