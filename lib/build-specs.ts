@@ -32,6 +32,10 @@ type BuildExportInput = {
   issues: CompatIssue[];
 };
 
+export function isBuildComplete(selected: Partial<Record<Category, Product>>) {
+  return CATEGORY_ORDER.every((key) => Boolean(selected[key]));
+}
+
 function formatDate() {
   return new Intl.DateTimeFormat("ar-IQ", {
     dateStyle: "long",
@@ -94,7 +98,7 @@ export function buildPrintHtml(
         <tr class="row missing">
           <td class="num">${rowNum}</td>
           <td class="cat">${meta.label}</td>
-          <td class="name muted" colspan="2">لم يُختر بعد</td>
+          <td class="name muted">لم يُختر بعد</td>
         </tr>
       `;
     }
@@ -116,7 +120,6 @@ export function buildPrintHtml(
           ${item.description ? `<span class="desc">${item.description}</span>` : ""}
           ${specsHtml}
         </td>
-        <td class="price" dir="ltr">${formatPrice(item.price)}</td>
       </tr>
     `;
   }).join("");
@@ -309,14 +312,6 @@ export function buildPrintHtml(
       font-style: normal;
       color: #5f7480;
       margin-left: 4px;
-    }
-    .price {
-      width: 110px;
-      text-align: left;
-      font-weight: 800;
-      font-size: 14px;
-      color: #1a7089;
-      white-space: nowrap;
     }
     .muted { color: #8a9ba6; font-style: italic; }
     .psu {
@@ -544,6 +539,7 @@ function printViaTab(input: BuildExportInput): boolean {
 
 export function printBuildSpecs(input: BuildExportInput) {
   if (typeof window === "undefined") return false;
+  if (!isBuildComplete(input.selected)) return false;
 
   const origin = window.location.origin;
   const html = buildPrintHtml(input, {
@@ -559,6 +555,9 @@ export function printBuildSpecs(input: BuildExportInput) {
 }
 
 export async function copyBuildSpecs(input: BuildExportInput) {
+  if (!isBuildComplete(input.selected)) {
+    throw new Error("Build incomplete");
+  }
   const text = buildSummaryPlainText(input);
   await navigator.clipboard.writeText(text);
   return text;
