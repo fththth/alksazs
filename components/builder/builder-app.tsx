@@ -108,6 +108,12 @@ export function BuilderApp() {
     setCategory(key);
     setQuery("");
     setSheetOpen(false);
+    window.requestAnimationFrame(() => {
+      document.getElementById("builder-picker")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   }
 
   function clearPart(key: Category) {
@@ -213,7 +219,7 @@ export function BuilderApp() {
       </section>
 
       <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="surface-card min-w-0 overflow-hidden p-3 sm:p-5">
+        <div className="surface-card min-w-0 overflow-hidden p-3 sm:p-5" id="builder-picker">
           <div className="sticky top-14 z-20 -mx-3 border-b border-border bg-card/95 px-3 py-3 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
             <CategoryTabs
               category={category}
@@ -341,26 +347,27 @@ export function BuilderApp() {
 
       <div
         className={cn(
-          "mobile-safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-[0_-8px_24px_rgb(15_36_48_/8%)] backdrop-blur-md transition-opacity lg:hidden",
-          sheetOpen && "pointer-events-none opacity-0"
+          "mobile-safe-bottom fixed inset-x-0 bottom-0 z-[70] border-t border-border bg-card/95 shadow-[0_-8px_24px_rgb(15_36_48_/8%)] backdrop-blur-md lg:hidden"
         )}
       >
         <div className="mx-auto max-w-7xl px-3 pt-2">
-          <div className="mb-2 flex items-center gap-1">
-            {CATEGORY_ORDER.map((key) => (
-              <span
-                key={key}
-                className={cn(
-                  "h-1 flex-1 rounded-full",
-                  categoryHasSelection(selected, key) ? "bg-emerald-500" : "bg-muted"
-                )}
-              />
-            ))}
-          </div>
+          {!sheetOpen ? (
+            <div className="mb-2 flex items-center gap-1">
+              {CATEGORY_ORDER.map((key) => (
+                <span
+                  key={key}
+                  className={cn(
+                    "h-1 flex-1 rounded-full",
+                    categoryHasSelection(selected, key) ? "bg-emerald-500" : "bg-muted"
+                  )}
+                />
+              ))}
+            </div>
+          ) : null}
           <div className="flex items-center gap-3 pb-1">
             <div className="min-w-0 shrink-0">
               <p className="text-[11px] text-muted-foreground">
-                {selectedCount} من {CATEGORY_ORDER.length} قطع
+                {sheetOpen ? "ملخص التجميعة" : `${selectedCount} من ${CATEGORY_ORDER.length} قطع`}
               </p>
               <p className="font-heading text-xl font-bold text-primary" dir="ltr">
                 {formatPrice(total)}
@@ -369,10 +376,11 @@ export function BuilderApp() {
             <Button
               type="button"
               size="lg"
+              variant={sheetOpen ? "outline" : "default"}
               className="relative z-10 h-11 flex-1 touch-manipulation text-base"
-              onClick={() => setSheetOpen(true)}
+              onClick={() => setSheetOpen((open) => !open)}
             >
-              عرض التجميعة
+              {sheetOpen ? "إغلاق" : "عرض المواصفات"}
             </Button>
           </div>
         </div>
@@ -381,15 +389,22 @@ export function BuilderApp() {
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent
           side="bottom"
-          className="flex h-[min(88dvh,720px)] flex-col rounded-t-2xl border-t p-0 lg:hidden"
+          showCloseButton={false}
+          className="flex h-[min(82dvh,680px)] flex-col rounded-t-2xl border-t p-0 pb-24 lg:hidden"
         >
-          <SheetHeader className="shrink-0 border-b border-border px-4 py-3 text-center">
-            <SheetTitle>تجميعتك</SheetTitle>
-            <p className="text-xs text-muted-foreground">
-              اضغط أي قطعة للرجوع وتغييرها
-            </p>
-          </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 pt-2">
+          <div className="shrink-0 border-b border-border px-4 pb-3 pt-2">
+            <div
+              className="mx-auto mb-3 h-1 w-10 rounded-full bg-muted-foreground/25"
+              aria-hidden
+            />
+            <SheetHeader className="gap-1 p-0 text-center">
+              <SheetTitle className="font-heading text-lg">مواصفات التجميعة</SheetTitle>
+              <p className="text-xs text-muted-foreground">
+                اضغط «تعديل» على أي قطعة للرجوع وتغييرها
+              </p>
+            </SheetHeader>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pt-2">
             <BuildSummary
               embedded
               selected={selected}

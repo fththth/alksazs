@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type MouseEvent } from "react";
-import { CheckCircle2, Copy, MessageCircle, Printer, RotateCcw, X, Zap } from "lucide-react";
+import { CheckCircle2, ChevronLeft, Copy, MessageCircle, Printer, RotateCcw, X, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
@@ -22,6 +22,7 @@ import {
 import { formatPrice } from "@/lib/format";
 import type { Category } from "@/lib/types";
 import type { CompatIssue } from "@/lib/compatibility";
+import { cn } from "@/lib/utils";
 
 const TOTAL_PARTS = CATEGORY_ORDER.length;
 
@@ -44,12 +45,14 @@ function PartsList({
   onRemoveProduct,
   onEditCategory,
   allowClear,
+  embedded = false,
 }: {
   selected: SelectedBuild;
   onClearPart?: (category: Category) => void;
   onRemoveProduct?: (category: Category, productId: string) => void;
   onEditCategory?: (category: Category) => void;
   allowClear: boolean;
+  embedded?: boolean;
 }) {
   return (
     <ul className="space-y-2">
@@ -64,7 +67,10 @@ function PartsList({
             <button
               type="button"
               onClick={() => onEditCategory?.(key)}
-              className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 px-3 py-2.5 text-right transition hover:border-primary/25 hover:bg-muted/40"
+              className={cn(
+                "flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 text-right transition hover:border-primary/25 hover:bg-muted/40",
+                embedded ? "min-h-[4.25rem] px-3 py-3 active:bg-muted/60" : "px-3 py-2.5"
+              )}
             >
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-[11px] font-medium text-primary">
@@ -105,14 +111,14 @@ function PartsList({
                   <p className="mt-0.5 text-sm text-muted-foreground">اضغط للاختيار</p>
                 )}
               </div>
-              {allowClear && items.length > 0 && onClearPart && !multi ? (
+              {allowClear && items.length > 0 && onClearPart && !multi && !embedded ? (
                 <ClearIconButton
                   onClick={(event) => {
                     event.stopPropagation();
                     onClearPart(key);
                   }}
                 />
-              ) : allowClear && items.length > 0 && onClearPart && multi ? (
+              ) : allowClear && items.length > 0 && onClearPart && multi && !embedded ? (
                 <button
                   type="button"
                   onClick={(event) => {
@@ -123,6 +129,11 @@ function PartsList({
                 >
                   مسح
                 </button>
+              ) : embedded ? (
+                <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary">
+                  تعديل
+                  <ChevronLeft className="size-3.5" />
+                </span>
               ) : (
                 <span className="text-xs text-muted-foreground">تغيير</span>
               )}
@@ -206,19 +217,31 @@ export function BuildSummary({
   }
 
   return (
-    <div className={embedded ? "p-1" : "surface-card p-5"}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium text-primary">ملخص التجميعة</p>
-          <h3 className="mt-1 font-heading text-lg font-semibold text-foreground">
-            {isComplete ? "التجميعة جاهزة" : "مواصفات الجهاز"}
-          </h3>
+    <div className={embedded ? "pb-2" : "surface-card p-5"}>
+      {!embedded ? (
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium text-primary">ملخص التجميعة</p>
+            <h3 className="mt-1 font-heading text-lg font-semibold text-foreground">
+              {isComplete ? "التجميعة جاهزة" : "مواصفات الجهاز"}
+            </h3>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onReset} disabled={empty}>
+            <RotateCcw />
+            مسح
+          </Button>
         </div>
-        <Button variant="ghost" size="sm" onClick={onReset} disabled={empty}>
-          <RotateCcw />
-          مسح
-        </Button>
-      </div>
+      ) : (
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            {selectedCount} من {TOTAL_PARTS} تصنيفات
+          </p>
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={onReset} disabled={empty}>
+            <RotateCcw />
+            مسح الكل
+          </Button>
+        </div>
+      )}
 
       {isComplete ? (
         <>
@@ -231,10 +254,11 @@ export function BuildSummary({
             </p>
           </div>
 
-          <div className="mt-4">
+          <div className={embedded ? "mt-0" : "mt-4"}>
             <PartsList
               selected={selected}
               allowClear
+              embedded={embedded}
               onClearPart={onClearPart}
               onRemoveProduct={onRemoveProduct}
               onEditCategory={onEditCategory}
@@ -274,13 +298,14 @@ export function BuildSummary({
         </>
       ) : (
         <>
-          <div className="mt-4">
+          <div className={embedded ? "mt-3" : "mt-4"}>
             <PartsList
               selected={selected}
               onClearPart={onClearPart}
               onRemoveProduct={onRemoveProduct}
               onEditCategory={onEditCategory}
               allowClear
+              embedded={embedded}
             />
           </div>
 
