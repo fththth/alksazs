@@ -3,9 +3,7 @@
 import { useEffect, useRef } from "react";
 import { buildPrintHtml, renderPrintDocument } from "@/lib/build-specs";
 import type { PrintBuildPayload } from "@/lib/print-storage";
-import { loadPrintBuild } from "@/lib/print-storage";
-
-const PRINT_MESSAGE = "QAZZAZ_PRINT";
+import { loadPrintBuild, PRINT_MESSAGE, PRINT_READY } from "@/lib/print-storage";
 
 export default function PrintPage() {
   const started = useRef(false);
@@ -45,7 +43,7 @@ export default function PrintPage() {
     window.addEventListener("message", onMessage);
 
     if (window.opener) {
-      window.opener.postMessage({ type: "QAZZAZ_PRINT_READY" }, origin);
+      window.opener.postMessage({ type: PRINT_READY }, origin);
       window.setTimeout(() => {
         window.removeEventListener("message", onMessage);
         if (document.body.innerText.includes("جاري تحضير")) showMissing();

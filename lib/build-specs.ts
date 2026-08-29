@@ -1,5 +1,6 @@
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import { formatPrice } from "@/lib/format";
+import { PRINT_MESSAGE, PRINT_READY } from "@/lib/print-storage";
 import type { CompatIssue } from "@/lib/compatibility";
 import type { Category, Product } from "@/lib/types";
 
@@ -486,12 +487,11 @@ export function renderPrintDocument(html: string) {
   document.close();
 }
 
-function printInHiddenIframe(html: string) {
+function printInIframe(html: string) {
   const iframe = document.createElement("iframe");
   iframe.setAttribute("title", "طباعة تجميعة القزاز");
-  iframe.setAttribute("aria-hidden", "true");
   iframe.style.cssText =
-    "position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none;";
+    "position:fixed;inset:0;width:100%;height:100%;border:0;z-index:99999;background:#fff;";
 
   document.body.appendChild(iframe);
 
@@ -507,11 +507,37 @@ function printInHiddenIframe(html: string) {
   doc.close();
 
   const cleanup = () => {
-    window.setTimeout(() => iframe.remove(), 1500);
+    window.setTimeout(() => iframe.remove(), 500);
   };
 
   win.addEventListener("afterprint", cleanup, { once: true });
-  window.setTimeout(cleanup, 30_000);
+  window.setTimeout(cleanup, 120_000);
+
+  return true;
+}
+
+function printViaTab(input: BuildExportInput): boolean {
+  const origin = window.location.origin;
+  const popup = window.open(`${origin}/print`, "_blank");
+  if (!popup) return false;
+
+  let delivered = false;
+
+  const deliver = () => {
+    if (delivered) return;
+    delivered = true;
+    popup.postMessage({ type: PRINT_MESSAGE, payload: input }, origin);
+  };
+
+  const onReady = (event: MessageEvent) => {
+    if (event.origin !== origin || event.data?.type !== PRINT_READY) return;
+    deliver();
+    window.removeEventListener("message", onReady);
+  };
+
+  window.addEventListener("message", onReady);
+  window.setTimeout(deliver, 400);
+  window.setTimeout(() => window.removeEventListener("message", onReady), 5000);
 
   return true;
 }
@@ -524,22 +550,12 @@ export function printBuildSpecs(input: BuildExportInput) {
     logoUrl: `${origin}/brand/mark.png`,
     splashUrl: `${origin}/brand/splash.jpg`,
   });
-  const printableHtml = withPrintScript(html);
 
-  // Blob tab: HTML carries all build data — no sessionStorage needed.
-  const blob = new Blob([printableHtml], { type: "text/html;charset=utf-8" });
-  const blobUrl = URL.createObjectURL(blob);
-  const popup = window.open(blobUrl, "_blank");
+  // Same-page iframe: works in preview environments where blob: URLs fail (ERR_FILE_NOT_FOUND).
+  if (printInIframe(html)) return true;
 
-  if (popup) {
-    window.setTimeout(() => URL.revokeObjectURL(blobUrl), 120_000);
-    return true;
-  }
-
-  URL.revokeObjectURL(blobUrl);
-
-  // Same-page iframe fallback when popups are blocked (preview environments).
-  return printInHiddenIframe(html);
+  // Optional tab preview via same-origin postMessage (no blob/sessionStorage).
+  return printViaTab(input);
 }
 
 export async function copyBuildSpecs(input: BuildExportInput) {

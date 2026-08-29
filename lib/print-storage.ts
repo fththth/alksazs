@@ -10,6 +10,9 @@ export type PrintBuildPayload = {
 
 const PRINT_KEY = "qazzaz-print-build";
 
+export const PRINT_MESSAGE = "QAZZAZ_PRINT";
+export const PRINT_READY = "QAZZAZ_PRINT_READY";
+
 export function savePrintBuild(payload: PrintBuildPayload) {
   sessionStorage.setItem(PRINT_KEY, JSON.stringify(payload));
 }
