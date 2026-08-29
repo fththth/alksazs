@@ -195,22 +195,24 @@ export function DashboardApp() {
           </Button>
         </div>
       ) : null}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-medium text-primary">لوحة التحكم</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold text-foreground sm:text-3xl">
+          <h1 className="mt-1 font-heading text-xl font-bold text-foreground sm:text-3xl">
             مخزون القزاز
           </h1>
           <p className="mt-2 max-w-xl text-sm leading-7 text-muted-foreground">
             أضف القطع، عدّل الأسعار، وحدد المتوفر. الزبون يشوف التحديث على صفحة التجميعة مباشرة.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setRestoreOpen(true)}>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          <Button variant="outline" className="min-h-10 sm:min-h-8" onClick={() => setRestoreOpen(true)}>
             <RefreshCcw />
-            استرجاع الكتالوج
+            <span className="hidden sm:inline">استرجاع الكتالوج</span>
+            <span className="sm:hidden">استرجاع</span>
           </Button>
           <Button
+            className="min-h-10 sm:min-h-8"
             onClick={() => {
               setIsNew(true);
               setEditor(emptyProduct("cpu"));
@@ -278,7 +280,7 @@ export function DashboardApp() {
               }
             />
           </div>
-          <Button onClick={() => void saveSettings()} disabled={saving}>
+          <Button onClick={() => void saveSettings()} disabled={saving} className="min-h-10 md:min-h-8">
             حفظ الإعدادات
           </Button>
         </div>
@@ -317,8 +319,68 @@ export function DashboardApp() {
             ماكو نتائج. جرّب تصنيف ثاني أو أضف قطعة جديدة.
           </div>
         ) : (
-          <div className="mt-4">
-            <Table>
+          <>
+            <ul className="mt-4 space-y-3 md:hidden">
+              {visible.map((product) => (
+                <li
+                  key={product.id}
+                  className="rounded-xl border border-border bg-background p-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium leading-snug text-foreground">
+                        {product.brand} {product.name}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                        {product.description}
+                      </p>
+                    </div>
+                    {product.available && product.stock > 0 ? (
+                      <Badge className="shrink-0 border-emerald-200 bg-emerald-50 text-emerald-700">
+                        معروض
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="shrink-0">
+                        مخفي
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span className="rounded-md bg-muted px-2 py-0.5">
+                      {CATEGORY_META[product.category].label}
+                    </span>
+                    <span dir="ltr" className="font-semibold text-primary">
+                      {formatPrice(product.price)}
+                    </span>
+                    <span>{formatStock(product.stock)}</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      className="min-h-10"
+                      onClick={() => {
+                        setIsNew(false);
+                        setEditor(product);
+                      }}
+                    >
+                      <Pencil />
+                      تعديل
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="min-h-10 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteId(product.id)}
+                    >
+                      <Trash2 />
+                      مسح
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-4 hidden md:block">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-right">القطعة</TableHead>
@@ -375,7 +437,8 @@ export function DashboardApp() {
                 ))}
               </TableBody>
             </Table>
-          </div>
+            </div>
+          </>
         )}
       </section>
 

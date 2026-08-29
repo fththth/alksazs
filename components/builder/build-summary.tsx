@@ -98,6 +98,7 @@ type Props = {
   onClearPart: (category: Category) => void;
   onReset: () => void;
   onEditCategory: (category: Category) => void;
+  embedded?: boolean;
 };
 
 export function BuildSummary({
@@ -110,6 +111,7 @@ export function BuildSummary({
   onClearPart,
   onReset,
   onEditCategory,
+  embedded = false,
 }: Props) {
   const [copying, setCopying] = useState(false);
   const empty = selectedCount === 0;
@@ -156,7 +158,7 @@ export function BuildSummary({
   }
 
   return (
-    <div className="surface-card p-5">
+    <div className={embedded ? "p-1" : "surface-card p-5"}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium text-primary">ملخص التجميعة</p>
@@ -190,25 +192,32 @@ export function BuildSummary({
             />
           </div>
 
-          <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 px-5 py-5 text-center">
+          <div className="mt-5 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-4 text-center sm:px-5 sm:py-5">
             <p className="text-sm text-muted-foreground">السعر الإجمالي</p>
-            <p className="mt-1 font-heading text-4xl font-bold text-primary" dir="ltr">
+            <p className="mt-1 font-heading text-3xl font-bold text-primary sm:text-4xl" dir="ltr">
               {formatPrice(total)}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">الأسعار بـ IQD — بدون أسعار فردية</p>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <Button
               variant="outline"
-              size="sm"
+              size="default"
+              className="min-h-11 sm:min-h-8 sm:w-auto"
               onClick={() => void handleCopy()}
               disabled={copying || !isReady}
             >
               <Copy />
               نسخ
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!isReady}>
+            <Button
+              variant="outline"
+              size="default"
+              className="min-h-11 sm:min-h-8 sm:w-auto"
+              onClick={handlePrint}
+              disabled={!isReady}
+            >
               <Printer />
               طباعة
             </Button>
@@ -290,7 +299,7 @@ export function BuildSummary({
           )}`}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700"
+          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 sm:h-10"
         >
           <MessageCircle className="size-4" />
           اطلب التجميعة واتساب

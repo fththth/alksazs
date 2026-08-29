@@ -41,7 +41,7 @@ export function ProductPickerCard({
     <li>
       <div
         className={cn(
-          "flex items-center gap-3 rounded-xl border p-3 transition sm:p-4",
+          "rounded-xl border p-3 transition sm:p-4",
           chosen && !incompatible
             ? "border-primary/40 bg-primary/5"
             : incompatible
@@ -49,11 +49,11 @@ export function ProductPickerCard({
               : "border-border bg-background"
         )}
       >
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             <p
               className={cn(
-                "font-heading text-sm font-semibold sm:text-base",
+                "font-heading text-sm font-semibold leading-snug sm:text-base",
                 incompatible ? "text-destructive" : "text-foreground"
               )}
             >
@@ -75,7 +75,7 @@ export function ProductPickerCard({
           </div>
 
           {chips.length > 0 ? (
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {chips.map((chip) => (
                 <span
                   key={chip}
@@ -90,13 +90,13 @@ export function ProductPickerCard({
             </div>
           ) : null}
 
-          {reason ? <p className="mt-1.5 text-xs text-destructive">{reason}</p> : null}
+          {reason ? <p className="mt-2 text-xs leading-5 text-destructive">{reason}</p> : null}
         </div>
 
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="mt-3 flex flex-col gap-2 border-t border-border/80 pt-3 sm:mt-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:border-0 sm:pt-0">
           <p
             className={cn(
-              "font-heading text-base font-bold sm:text-lg",
+              "font-heading text-lg font-bold sm:text-xl",
               incompatible ? "text-destructive/70" : "text-primary"
             )}
             dir="ltr"
@@ -105,11 +105,11 @@ export function ProductPickerCard({
           </p>
           <Button
             type="button"
-            size="sm"
+            size="default"
             variant={chosen && !incompatible ? "outline" : "default"}
             disabled={blocked}
             onClick={onPick}
-            className="min-w-[72px]"
+            className="min-h-11 w-full px-5 sm:min-h-8 sm:w-auto sm:min-w-[4.5rem] sm:px-3"
           >
             {chosen && !incompatible ? "تغيير" : "اختيار"}
           </Button>

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { BrandMark } from "@/components/brand-mark";
 import { BuildSummary } from "@/components/builder/build-summary";
+import { CategoryTabs } from "@/components/builder/category-tabs";
 import { ProductPickerCard } from "@/components/builder/product-picker-card";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import {
@@ -122,8 +123,25 @@ export function BuilderApp() {
   const CategoryIcon = meta.icon;
 
   return (
-    <div className="page-shell">
-      <section className="surface-card overflow-hidden">
+    <div className="page-shell pb-28 lg:pb-6">
+      {/* Mobile hero — compact */}
+      <section className="surface-card overflow-hidden sm:hidden">
+        <div className="flex items-center gap-3 p-4">
+          <BrandMark className="size-12 shrink-0" size={96} />
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-primary">القزاز لخدمات الحاسبات</p>
+            <h1 className="mt-0.5 font-heading text-lg font-bold leading-tight text-foreground">
+              جهّز حاسبك بـ 8 خطوات
+            </h1>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              اختر القطع والسعر يطلع مباشرة — تقدر تغيّر أي قطعة بأي وقت.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Desktop hero */}
+      <section className="surface-card hidden overflow-hidden sm:block">
         <div className="grid md:grid-cols-[minmax(0,1fr)_300px]">
           <div className="flex flex-col justify-center gap-4 p-6 sm:p-8">
             <div className="flex items-center gap-3">
@@ -169,92 +187,56 @@ export function BuilderApp() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="surface-card min-w-0 p-4 sm:p-5">
-          <div className="flex items-center gap-1">
-            {CATEGORY_ORDER.map((key) => {
-              const done = Boolean(selected[key]);
-              const active = category === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  title={CATEGORY_META[key].label}
-                  onClick={() => goToCategory(key)}
-                  className={cn(
-                    "h-1.5 flex-1 rounded-full transition",
-                    done ? "bg-emerald-500" : active ? "bg-primary" : "bg-muted"
-                  )}
-                />
-              );
-            })}
+      <div className="mt-4 grid gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="surface-card min-w-0 overflow-hidden p-3 sm:p-5">
+          <div className="sticky top-14 z-20 -mx-3 border-b border-border bg-card/95 px-3 py-3 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+            <CategoryTabs
+              category={category}
+              selected={selected}
+              onSelect={goToCategory}
+            />
           </div>
 
-          <div className="mt-3 grid grid-cols-4 gap-1 sm:grid-cols-8">
-            {CATEGORY_ORDER.map((key) => {
-              const item = CATEGORY_META[key];
-              const Icon = item.icon;
-              const chosen = selected[key];
-              const active = category === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  title={item.label}
-                  aria-pressed={active}
-                  onClick={() => goToCategory(key)}
-                  className={cn(
-                    "flex min-h-9 min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full border px-1.5 py-2 text-[11px] leading-tight transition sm:px-2 sm:text-xs",
-                    active ? "chip-active" : "chip-idle"
-                  )}
-                >
-                  <Icon className="size-3 shrink-0" />
-                  <span className="truncate">{item.tabLabel}</span>
-                  {chosen ? (
-                    <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-5 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-foreground">
-                <CategoryIcon className="size-5 text-primary" />
-                <h2 className="font-heading text-xl font-semibold">{meta.label}</h2>
+          <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-0 sm:border-t sm:border-border sm:pt-5">
+            <div className="flex items-center gap-2 text-foreground">
+              <CategoryIcon className="size-5 shrink-0 text-primary" />
+              <div className="min-w-0">
+                <h2 className="font-heading text-lg font-semibold sm:text-xl">{meta.label}</h2>
+                <p className="mt-0.5 text-xs leading-5 text-muted-foreground sm:hidden">
+                  {meta.hint}
+                </p>
               </div>
-              <p className="mt-1 max-w-xl text-sm leading-7 text-muted-foreground">
-                {meta.hint}
-              </p>
             </div>
+            <p className="hidden max-w-xl text-sm leading-7 text-muted-foreground sm:block">
+              {meta.hint}
+            </p>
             <div className="relative w-full sm:max-w-xs">
               <Search className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="ابحث بالموديل أو الشركة"
-                className="h-10 bg-background pr-8"
+                className="h-11 bg-background pr-8 sm:h-10"
               />
             </div>
           </div>
 
           {selected[category] ? (
-            <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
-              <p className="min-w-0 truncate text-foreground">
+            <div className="mt-3 flex items-start justify-between gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm sm:mt-4">
+              <p className="min-w-0 flex-1 leading-6 text-foreground">
                 <span className="text-primary">المختار: </span>
-                <span className="font-semibold">
+                <span className="font-semibold break-words">
                   {selected[category]!.brand} {selected[category]!.name}
                 </span>
               </p>
-              <Button variant="ghost" size="sm" onClick={() => clearPart(category)}>
+              <Button variant="ghost" size="sm" className="shrink-0" onClick={() => clearPart(category)}>
                 إلغاء
               </Button>
             </div>
           ) : null}
 
           {visible.length === 0 ? (
-            <div className="mt-6 rounded-xl border border-dashed border-border bg-muted/40 px-6 py-14 text-center text-muted-foreground">
+            <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-10 text-center text-sm text-muted-foreground sm:mt-6 sm:py-14">
               ماكو قطع بهالتصنيف حالياً
               {query ? " مطابقة للبحث" : ""}. تقدر تضيف من لوحة التحكم.
             </div>
@@ -299,29 +281,49 @@ export function BuilderApp() {
         </aside>
       </div>
 
-      <div className="h-24 lg:hidden" />
-
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 p-3 backdrop-blur-md lg:hidden">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">{selectedCount} من {CATEGORY_ORDER.length} قطع</p>
-            <p className="font-heading text-xl font-bold text-primary" dir="ltr">
-              {formatPrice(total)}
-            </p>
+      <div className="mobile-safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 shadow-[0_-8px_24px_rgb(15_36_48_/8%)] backdrop-blur-md lg:hidden">
+        <div className="mx-auto max-w-7xl px-3 pt-2">
+          <div className="mb-2 flex items-center gap-1">
+            {CATEGORY_ORDER.map((key) => (
+              <span
+                key={key}
+                className={cn(
+                  "h-1 flex-1 rounded-full",
+                  selected[key] ? "bg-emerald-500" : "bg-muted"
+                )}
+              />
+            ))}
           </div>
-          <Button size="lg" onClick={() => setSheetOpen(true)}>
-            عرض التجميعة
-          </Button>
+          <div className="flex items-center gap-3 pb-1">
+            <div className="min-w-0 shrink-0">
+              <p className="text-[11px] text-muted-foreground">
+                {selectedCount} من {CATEGORY_ORDER.length} قطع
+              </p>
+              <p className="font-heading text-xl font-bold text-primary" dir="ltr">
+                {formatPrice(total)}
+              </p>
+            </div>
+            <Button size="lg" className="h-11 flex-1 text-base" onClick={() => setSheetOpen(true)}>
+              عرض التجميعة
+            </Button>
+          </div>
         </div>
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="w-full bg-card sm:max-w-md">
-          <SheetHeader className="px-4 pt-4">
+        <SheetContent
+          side="bottom"
+          className="flex h-[min(88dvh,720px)] flex-col rounded-t-2xl border-t p-0 lg:hidden"
+        >
+          <SheetHeader className="shrink-0 border-b border-border px-4 py-3 text-center">
             <SheetTitle>تجميعتك</SheetTitle>
+            <p className="text-xs text-muted-foreground">
+              اضغط أي قطعة للرجوع وتغييرها
+            </p>
           </SheetHeader>
-          <div className="overflow-y-auto px-4 pb-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4 pt-2">
             <BuildSummary
+              embedded
               selected={selected}
               total={total}
               issues={issues}
