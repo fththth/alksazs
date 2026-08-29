@@ -143,7 +143,7 @@ export function BuilderApp() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="surface-card min-w-0 p-4 sm:p-5">
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-4 gap-1 sm:grid-cols-8">
             {CATEGORY_ORDER.map((key) => {
               const item = CATEGORY_META[key];
               const Icon = item.icon;
@@ -157,11 +157,16 @@ export function BuilderApp() {
                     setCategory(key);
                     setQuery("");
                   }}
-                  className={cn("chip flex items-center gap-2", active ? "chip-active" : "chip-idle")}
+                  className={cn(
+                    "flex min-w-0 items-center justify-center gap-1 rounded-full border px-1.5 py-1 text-[11px] leading-none transition sm:px-2 sm:text-xs",
+                    active ? "chip-active" : "chip-idle"
+                  )}
                 >
-                  <Icon className="size-4" />
-                  {item.label}
-                  {chosen ? <span className="size-1.5 rounded-full bg-emerald-500" /> : null}
+                  <Icon className="size-3 shrink-0" />
+                  <span className="truncate">{item.tabLabel}</span>
+                  {chosen ? (
+                    <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+                  ) : null}
                 </button>
               );
             })}
