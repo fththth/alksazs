@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/categories";
 import type { Category, FormFactor, Product, RamType } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function emptyProduct(category: Category): Product {
   return {
@@ -19,6 +20,46 @@ export function emptyProduct(category: Category): Product {
     available: true,
     specs: {},
   };
+}
+
+type ChipOption = { value: string; label: string };
+
+function ChipGroup({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: ChipOption[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      <p className="text-sm font-medium">{label}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((option) => {
+          const active = option.value === value;
+          return (
+            <button
+              key={option.value || "none"}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-sm transition",
+                active
+                  ? "border-amber-300/50 bg-amber-300/15 text-amber-50"
+                  : "border-white/10 bg-white/4 text-zinc-300 hover:bg-white/8"
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 type Props = {
@@ -54,38 +95,34 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
         onSubmit();
       }}
     >
-      <div className="grid gap-2">
-        <Label htmlFor="category">التصنيف</Label>
-        <select
-          id="category"
-          className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30"
-          value={product.category}
-          onChange={(event) => update("category", event.target.value as Category)}
-        >
-          {CATEGORY_ORDER.map((key) => (
-            <option key={key} value={key}>
-              {CATEGORY_META[key].label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <ChipGroup
+        label="التصنيف"
+        value={product.category}
+        options={CATEGORY_ORDER.map((key) => ({
+          value: key,
+          label: CATEGORY_META[key].label,
+        }))}
+        onChange={(value) => update("category", value as Category)}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="brand">الشركة</Label>
+          <Label htmlFor="product-brand">الشركة</Label>
           <Input
-            id="brand"
+            id="product-brand"
             required
+            autoComplete="off"
             value={product.brand}
             onChange={(event) => update("brand", event.target.value)}
             placeholder="AMD"
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="name">الموديل</Label>
+          <Label htmlFor="product-model">الموديل</Label>
           <Input
-            id="name"
+            id="product-model"
             required
+            autoComplete="off"
             value={product.name}
             onChange={(event) => update("name", event.target.value)}
             placeholder="Ryzen 7 7800X3D"
@@ -94,9 +131,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="description">الوصف</Label>
+        <Label htmlFor="product-description">الوصف</Label>
         <Textarea
-          id="description"
+          id="product-description"
           value={product.description}
           onChange={(event) => update("description", event.target.value)}
           placeholder="شنو مميز بهالقطعة للزبون؟"
@@ -105,9 +142,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="price">السعر IQD</Label>
+          <Label htmlFor="product-price">السعر IQD</Label>
           <Input
-            id="price"
+            id="product-price"
             type="number"
             min={0}
             step="1000"
@@ -118,9 +155,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="stock">الكمية</Label>
+          <Label htmlFor="product-stock">الكمية</Label>
           <Input
-            id="stock"
+            id="product-stock"
             type="number"
             min={0}
             step="1"
@@ -146,9 +183,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
         product.category === "motherboard" ||
         product.category === "cooler") && (
         <div className="grid gap-2">
-          <Label htmlFor="socket">السوكت</Label>
+          <Label htmlFor="product-socket">السوكت</Label>
           <Input
-            id="socket"
+            id="product-socket"
             dir="ltr"
             placeholder="AM5 أو LGA1700"
             value={product.specs.socket ?? ""}
@@ -158,51 +195,42 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
       )}
 
       {(product.category === "motherboard" || product.category === "ram") && (
-        <div className="grid gap-2">
-          <Label htmlFor="ramType">نوع الرام</Label>
-          <select
-            id="ramType"
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30"
-            value={product.specs.ramType ?? ""}
-            onChange={(event) =>
-              updateSpec("ramType", (event.target.value || undefined) as RamType | undefined)
-            }
-          >
-            <option value="">بدون تحديد</option>
-            <option value="DDR4">DDR4</option>
-            <option value="DDR5">DDR5</option>
-          </select>
-        </div>
+        <ChipGroup
+          label="نوع الرام"
+          value={product.specs.ramType ?? ""}
+          options={[
+            { value: "", label: "بدون تحديد" },
+            { value: "DDR4", label: "DDR4" },
+            { value: "DDR5", label: "DDR5" },
+          ]}
+          onChange={(value) =>
+            updateSpec("ramType", (value || undefined) as RamType | undefined)
+          }
+        />
       )}
 
       {(product.category === "motherboard" || product.category === "case") && (
-        <div className="grid gap-2">
-          <Label htmlFor="formFactor">حجم اللوحة / الكيس</Label>
-          <select
-            id="formFactor"
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30"
-            value={product.specs.formFactor ?? ""}
-            onChange={(event) =>
-              updateSpec(
-                "formFactor",
-                (event.target.value || undefined) as FormFactor | undefined
-              )
-            }
-          >
-            <option value="">بدون تحديد</option>
-            <option value="ATX">ATX</option>
-            <option value="mATX">mATX</option>
-            <option value="ITX">ITX</option>
-          </select>
-        </div>
+        <ChipGroup
+          label="حجم اللوحة / الكيس"
+          value={product.specs.formFactor ?? ""}
+          options={[
+            { value: "", label: "بدون تحديد" },
+            { value: "ATX", label: "ATX" },
+            { value: "mATX", label: "mATX" },
+            { value: "ITX", label: "ITX" },
+          ]}
+          onChange={(value) =>
+            updateSpec("formFactor", (value || undefined) as FormFactor | undefined)
+          }
+        />
       )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         {(product.category === "cpu" || product.category === "cooler") && (
           <div className="grid gap-2">
-            <Label htmlFor="tdp">TDP / قدرة التبريد</Label>
+            <Label htmlFor="product-tdp">TDP / قدرة التبريد</Label>
             <Input
-              id="tdp"
+              id="product-tdp"
               type="number"
               min={0}
               dir="ltr"
@@ -218,9 +246,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
         )}
         {(product.category === "gpu" || product.category === "cooler") && (
           <div className="grid gap-2">
-            <Label htmlFor="wattage">الواط / حجم الرديتر</Label>
+            <Label htmlFor="product-wattage">الواط / حجم الرديتر</Label>
             <Input
-              id="wattage"
+              id="product-wattage"
               type="number"
               min={0}
               dir="ltr"
@@ -238,9 +266,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
           product.category === "storage" ||
           product.category === "gpu") && (
           <div className="grid gap-2">
-            <Label htmlFor="capacity">السعة</Label>
+            <Label htmlFor="product-capacity">السعة</Label>
             <Input
-              id="capacity"
+              id="product-capacity"
               dir="ltr"
               placeholder="32GB أو 2TB"
               value={product.specs.capacity ?? ""}
@@ -250,9 +278,9 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
         )}
         {(product.category === "ram" || product.category === "storage") && (
           <div className="grid gap-2">
-            <Label htmlFor="speed">السرعة</Label>
+            <Label htmlFor="product-speed">السرعة</Label>
             <Input
-              id="speed"
+              id="product-speed"
               dir="ltr"
               placeholder="6000 MT/s"
               value={product.specs.speed ?? ""}

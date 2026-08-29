@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   Check,
@@ -24,6 +24,7 @@ import { formatPrice, formatStock } from "@/lib/format";
 import type { BuildSelection, Category, Product } from "@/lib/types";
 import { BuildSummary } from "@/components/builder/build-summary";
 import { useCatalog } from "@/hooks/use-catalog";
+import { readStoredBuild, writeStoredBuild } from "@/lib/build-storage";
 import { cn } from "@/lib/utils";
 
 const EMPTY_PRODUCTS: Product[] = [];
@@ -32,8 +33,12 @@ export function BuilderApp() {
   const { catalog, error, loading, reload } = useCatalog();
   const [category, setCategory] = useState<Category>("cpu");
   const [query, setQuery] = useState("");
-  const [selection, setSelection] = useState<BuildSelection>({});
+  const [selection, setSelection] = useState<BuildSelection>(readStoredBuild);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    writeStoredBuild(selection);
+  }, [selection]);
 
   const products = catalog?.products ?? EMPTY_PRODUCTS;
   const selected = useMemo(
