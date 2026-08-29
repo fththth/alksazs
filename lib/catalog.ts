@@ -31,7 +31,7 @@ function convertLegacyUsd(catalog: Catalog): Catalog {
       ...catalog.settings,
       shopNote: catalog.settings.shopNote.replaceAll(
         "بالدولار الأمريكي",
-        "بالدينار العراقي"
+        "بـ IQD"
       ),
     },
     products: catalog.products.map((item) => ({

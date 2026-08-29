@@ -1,5 +1,5 @@
 export function formatPrice(value: number) {
-  return `${Math.round(value).toLocaleString("ar-IQ")} د.ع`;
+  return `${Math.round(value).toLocaleString("en-US")} IQD`;
 }
 
 export function formatStock(stock: number) {

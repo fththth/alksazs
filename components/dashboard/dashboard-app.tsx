@@ -211,6 +211,7 @@ export function DashboardApp() {
           label="قيمة المخزون"
           value={formatPrice(stats.value)}
           hint="سعر × الكمية"
+          ltr
         />
         <StatCard
           icon={AlertTriangle}
@@ -317,7 +318,7 @@ export function DashboardApp() {
                       </p>
                     </TableCell>
                     <TableCell>{CATEGORY_META[product.category].label}</TableCell>
-                    <TableCell>{formatPrice(product.price)}</TableCell>
+                    <TableCell dir="ltr">{formatPrice(product.price)}</TableCell>
                     <TableCell>{formatStock(product.stock)}</TableCell>
                     <TableCell>
                       {product.available && product.stock > 0 ? (
@@ -360,7 +361,7 @@ export function DashboardApp() {
           <DialogHeader>
             <DialogTitle>{isNew ? "قطعة جديدة" : "تعديل قطعة"}</DialogTitle>
             <DialogDescription>
-            السعر بالدينار العراقي. الزبون يشوف القطعة إذا كانت متاحة وفيها مخزون.
+            السعر بـ IQD. الزبون يشوف القطعة إذا كانت متاحة وفيها مخزون.
             </DialogDescription>
           </DialogHeader>
           {editor ? (

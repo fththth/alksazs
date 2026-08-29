@@ -105,7 +105,7 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="price">السعر بالدينار</Label>
+          <Label htmlFor="price">السعر IQD</Label>
           <Input
             id="price"
             type="number"
