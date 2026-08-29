@@ -22,6 +22,9 @@ export function writeCachedThemeMode(mode: ThemeMode) {
   }
 }
 
-export function themeModeScript() {
-  return `(function(){try{var m=localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)});var r=document.documentElement;if(m==="dark")r.classList.add("dark");else if(m==="light")r.classList.remove("dark");}catch(e){}})();`;
+/** Runs before paint: apply server theme and sync localStorage. */
+export function themeInitScript(mode: ThemeMode) {
+  const key = JSON.stringify(THEME_STORAGE_KEY);
+  const value = JSON.stringify(mode);
+  return `(function(){try{var m=${value};localStorage.setItem(${key},m);var r=document.documentElement;if(m==="dark")r.classList.add("dark");else r.classList.remove("dark");}catch(e){}})();`;
 }

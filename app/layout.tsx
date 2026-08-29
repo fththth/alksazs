@@ -6,7 +6,7 @@ import { ShopThemeProvider } from "@/components/shop-theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { readCatalog } from "@/lib/catalog";
 import { parseThemeMode } from "@/lib/theme";
-import { themeModeScript } from "@/lib/theme-storage";
+import { themeInitScript } from "@/lib/theme-storage";
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeModeScript() }} />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript(themeMode) }} />
       </head>
       <body className={`${cairo.className} min-h-full flex flex-col bg-background text-foreground`}>
         <CatalogProvider initialCatalog={catalog}>

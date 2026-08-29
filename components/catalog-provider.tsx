@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import type { Catalog, Product, ShopSettings } from "@/lib/types";
+import { parseThemeMode } from "@/lib/theme";
+import { writeCachedThemeMode } from "@/lib/theme-storage";
 
 type CatalogContextValue = {
   catalog: Catalog | null;
@@ -46,6 +48,7 @@ export function CatalogProvider({
     try {
       const data = await fetchCatalog();
       setCatalogState(data);
+      writeCachedThemeMode(parseThemeMode(data.settings.themeMode));
       return data;
     } catch {
       setError("ما قدرنا نحمّل البيانات. جرّب مرة ثانية.");
@@ -57,6 +60,7 @@ export function CatalogProvider({
 
   const setCatalog = useCallback((next: Catalog) => {
     setError(null);
+    writeCachedThemeMode(parseThemeMode(next.settings.themeMode));
     setCatalogState(next);
   }, []);
 
@@ -80,6 +84,7 @@ export function CatalogProvider({
   }, []);
 
   const updateSettingsLocal = useCallback((settings: ShopSettings) => {
+    writeCachedThemeMode(parseThemeMode(settings.themeMode));
     setCatalogState((current) => ({ ...current, settings }));
   }, []);
 
