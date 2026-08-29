@@ -9,6 +9,7 @@ import {
   buildSummaryPlainText,
   copyBuildSpecs,
   isBuildComplete,
+  isBuildReady,
   printBuildSpecs,
   productFullName,
 } from "@/lib/build-specs";
@@ -99,12 +100,17 @@ export function BuildSummary({
   const [copying, setCopying] = useState(false);
   const empty = selectedCount === 0;
   const isComplete = isBuildComplete(selected);
+  const isReady = isBuildReady(selected, issues);
   const waNumber = whatsapp.replace(/[^\d]/g, "");
   const exportInput = { selected, total, psu, issues };
 
   async function handleCopy() {
     if (!isComplete) {
       toast.error("أكمل اختيار كل القطع قبل النسخ");
+      return;
+    }
+    if (!isReady) {
+      toast.error("صلّح مشاكل التوافق أو المخزون قبل النسخ");
       return;
     }
     setCopying(true);
@@ -121,6 +127,10 @@ export function BuildSummary({
   function handlePrint() {
     if (!isComplete) {
       toast.error("أكمل اختيار كل القطع قبل الطباعة");
+      return;
+    }
+    if (!isReady) {
+      toast.error("صلّح مشاكل التوافق أو المخزون قبل الطباعة");
       return;
     }
     const opened = printBuildSpecs(exportInput);
@@ -150,7 +160,11 @@ export function BuildSummary({
         <>
           <div className="mt-4 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
             <CheckCircle2 className="size-5 shrink-0 text-primary" />
-            <p className="text-sm text-primary">اكتملت كل القطع — جاهزة للنسخ والطباعة</p>
+            <p className="text-sm text-primary">
+              {isReady
+                ? "اكتملت كل القطع — جاهزة للنسخ والطباعة"
+                : "اكتملت كل القطع — راجع التنبيهات قبل النسخ أو الطباعة"}
+            </p>
           </div>
 
           <div className="mt-4">
@@ -166,11 +180,16 @@ export function BuildSummary({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => void handleCopy()} disabled={copying}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleCopy()}
+              disabled={copying || !isReady}
+            >
               <Copy />
               نسخ
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={!isReady}>
               <Printer />
               طباعة
             </Button>

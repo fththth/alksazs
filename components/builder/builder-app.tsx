@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   Check,
@@ -24,9 +24,9 @@ import {
   incompatibilityReason,
 } from "@/lib/compatibility";
 import { formatPrice, formatStock } from "@/lib/format";
-import type { BuildSelection, Category, Product } from "@/lib/types";
+import type { Category, Product } from "@/lib/types";
+import { useBuildSelection } from "@/hooks/use-build-selection";
 import { useCatalog } from "@/hooks/use-catalog";
-import { readStoredBuild, writeStoredBuild } from "@/lib/build-storage";
 import { cn } from "@/lib/utils";
 
 const EMPTY_PRODUCTS: Product[] = [];
@@ -35,14 +35,10 @@ export function BuilderApp() {
   const { catalog, error, loading, reload } = useCatalog();
   const [category, setCategory] = useState<Category>("cpu");
   const [query, setQuery] = useState("");
-  const [selection, setSelection] = useState<BuildSelection>(readStoredBuild);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  useEffect(() => {
-    writeStoredBuild(selection);
-  }, [selection]);
-
   const products = catalog?.products ?? EMPTY_PRODUCTS;
+  const { selection, setSelection } = useBuildSelection(products);
   const selected = useMemo(
     () => getSelectedProducts(products, selection),
     [products, selection]
@@ -86,7 +82,7 @@ export function BuilderApp() {
     );
   }
 
-  if (error || !catalog) {
+  if (!catalog) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
         <AlertTriangle className="size-10 text-primary" />
@@ -118,9 +114,18 @@ export function BuilderApp() {
               جهّز حاسبك قطعة قطعة، والسعر يطلع لك مباشرة.
             </h1>
             <p className="max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
-              اختَر المعالج، المذربود، الرامات، كرت الشاشة، التخزين، الكولر، والكيس.
-              نراجع التوافق ونحسبلك السعر الإجمالي قبل لا تطلب.
+              اختَر المعالج، المذربورد، الرامات، كرت الشاشة، التخزين، الكولر، مزود الطاقة،
+              والكيس. نراجع التوافق ونحسبلك السعر الإجمالي قبل لا تطلب.
             </p>
+            {error ? (
+              <div className="flex max-w-xl flex-wrap items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+                <AlertTriangle className="size-4 shrink-0" />
+                <span>{error}</span>
+                <Button variant="outline" size="sm" onClick={() => void reload()}>
+                  إعادة المحاولة
+                </Button>
+              </div>
+            ) : null}
             {catalog.settings.shopNote ? (
               <p className="max-w-xl rounded-xl bg-muted px-3 py-2 text-sm text-muted-foreground">
                 {catalog.settings.shopNote}

@@ -6,6 +6,21 @@ const FORM_SUPPORT: Record<FormFactor, FormFactor[]> = {
   ITX: ["ITX"],
 };
 
+function socketTokens(value: string) {
+  return value
+    .split(/[/,|]/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function coolerSupportsSocket(coolerSocket: string, cpuSocket: string) {
+  return socketTokens(coolerSocket).some((token) => token === cpuSocket);
+}
+
+function productLabel(product: Product) {
+  return `${product.brand} ${product.name}`.trim();
+}
+
 export type CompatIssue = {
   id: string;
   message: string;
@@ -57,7 +72,7 @@ export function incompatibilityReason(
   }
 
   if (product.category === "cooler" && cpu?.specs.socket) {
-    if (product.specs.socket && !product.specs.socket.includes(cpu.specs.socket)) {
+    if (product.specs.socket && !coolerSupportsSocket(product.specs.socket, cpu.specs.socket)) {
       return `هذا الكولر غير مذكور لسوكت ${cpu.specs.socket}`;
     }
   }
@@ -86,6 +101,9 @@ export function incompatibilityReason(
     if ((product.specs.wattage ?? 0) >= 240) {
       return "الكيس الصغير قد لا يتسع لمبرد مائي بهذا الحجم";
     }
+    if ((product.specs.tdp ?? 0) >= 250) {
+      return "الكيس الصغير قد لا يتسع لهذا الكولر الكبير";
+    }
   }
 
   if (product.category === "psu") {
@@ -107,6 +125,19 @@ export function buildIssues(
 
   for (const product of Object.values(selected)) {
     if (!product) continue;
+
+    if (product.stock <= 0) {
+      issues.push({
+        id: `stock-${product.id}`,
+        message: `${productLabel(product)} نفد من المخزون`,
+      });
+    } else if (!product.available) {
+      issues.push({
+        id: `avail-${product.id}`,
+        message: `${productLabel(product)} غير متوفر حالياً`,
+      });
+    }
+
     const reason = incompatibilityReason(product, selected);
     if (reason) {
       issues.push({ id: `${product.category}-${product.id}`, message: reason });

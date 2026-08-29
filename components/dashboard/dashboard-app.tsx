@@ -171,11 +171,11 @@ export function DashboardApp() {
     );
   }
 
-  if (error || !catalog) {
+  if (!catalog) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
         <AlertTriangle className="size-10 text-primary" />
-        <p className="text-lg text-foreground">{error}</p>
+        <p className="text-lg text-foreground">{error ?? "صار خطأ غير متوقع."}</p>
         <Button onClick={() => void reload()}>
           <RefreshCcw />
           إعادة المحاولة
@@ -186,6 +186,15 @@ export function DashboardApp() {
 
   return (
     <div className="page-shell">
+      {error ? (
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>{error}</span>
+          <Button variant="outline" size="sm" onClick={() => void reload()}>
+            إعادة المحاولة
+          </Button>
+        </div>
+      ) : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-medium text-primary">لوحة التحكم</p>

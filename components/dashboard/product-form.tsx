@@ -102,7 +102,11 @@ export function ProductForm({ product, onChange, onSubmit, saving }: Props) {
           value: key,
           label: CATEGORY_META[key].label,
         }))}
-        onChange={(value) => update("category", value as Category)}
+        onChange={(value) => {
+          const nextCategory = value as Category;
+          if (nextCategory === product.category) return;
+          onChange({ ...product, category: nextCategory, specs: {} });
+        }}
       />
 
       <div className="grid gap-3 sm:grid-cols-2">

@@ -1,4 +1,4 @@
-import { CATEGORIES, type BuildSelection } from "@/lib/types";
+import { CATEGORIES, type BuildSelection, type Product } from "@/lib/types";
 
 export const BUILD_STORAGE_KEY = "qazzaz-build";
 
@@ -18,6 +18,17 @@ export function readStoredBuild(): BuildSelection {
   } catch {
     return {};
   }
+}
+
+export function sanitizeSelection(products: Product[], selection: BuildSelection): BuildSelection {
+  const next: BuildSelection = {};
+  for (const category of CATEGORIES) {
+    const id = selection[category];
+    if (!id) continue;
+    const exists = products.some((item) => item.id === id && item.category === category);
+    if (exists) next[category] = id;
+  }
+  return next;
 }
 
 export function writeStoredBuild(selection: BuildSelection) {

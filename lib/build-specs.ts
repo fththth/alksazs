@@ -37,6 +37,13 @@ export function isBuildComplete(selected: Partial<Record<Category, Product>>) {
   return CATEGORY_ORDER.every((key) => Boolean(selected[key]));
 }
 
+export function isBuildReady(
+  selected: Partial<Record<Category, Product>>,
+  issues: CompatIssue[]
+) {
+  return isBuildComplete(selected) && issues.length === 0;
+}
+
 function formatDate() {
   return new Intl.DateTimeFormat("ar-IQ", {
     dateStyle: "long",
@@ -67,7 +74,7 @@ export function buildSummaryPlainText({ selected, total, psu, issues }: BuildExp
   lines.push("──────────────────────────────");
   lines.push(`السعر الإجمالي: ${formatPrice(total)}`);
 
-  if (psu) {
+  if (psu && !selected.psu) {
     lines.push(`مزود الطاقة المقترح: ${psu}W`);
   }
 
@@ -133,9 +140,10 @@ export function buildPrintHtml(
         </aside>`
       : "";
 
-  const psuHtml = psu
-    ? `<p class="psu">⚡ مزود الطاقة المقترح: <strong dir="ltr">${psu}W</strong></p>`
-    : "";
+  const psuHtml =
+    psu && !selected.psu
+      ? `<p class="psu">⚡ مزود الطاقة المقترح: <strong dir="ltr">${psu}W</strong></p>`
+      : "";
 
   const selectedCount = CATEGORY_ORDER.filter((k) => selected[k]).length;
 
@@ -540,7 +548,7 @@ function printViaTab(input: BuildExportInput): boolean {
 
 export function printBuildSpecs(input: BuildExportInput) {
   if (typeof window === "undefined") return false;
-  if (!isBuildComplete(input.selected)) return false;
+  if (!isBuildReady(input.selected, input.issues)) return false;
 
   const origin = window.location.origin;
   const html = buildPrintHtml(input, {
@@ -556,8 +564,8 @@ export function printBuildSpecs(input: BuildExportInput) {
 }
 
 export async function copyBuildSpecs(input: BuildExportInput) {
-  if (!isBuildComplete(input.selected)) {
-    throw new Error("Build incomplete");
+  if (!isBuildReady(input.selected, input.issues)) {
+    throw new Error("Build not ready");
   }
   const text = buildSummaryPlainText(input);
   await navigator.clipboard.writeText(text);
