@@ -14,7 +14,6 @@ import {
   Trash2,
   Wallet,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,7 +56,6 @@ export function DashboardApp() {
     removeProductLocal,
     updateSettingsLocal,
   } = useCatalog();
-  const { setTheme } = useTheme();
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Category | "all">("all");
@@ -138,7 +136,6 @@ export function DashboardApp() {
       toast.success("انحفظت إعدادات المحل");
       setDraftSettings(null);
       updateSettingsLocal(saved);
-      setTheme(saved.themeMode);
     } catch {
       toast.error("ما انحفظت الإعدادات.");
     } finally {
@@ -147,11 +144,9 @@ export function DashboardApp() {
   }
 
   function setThemeMode(mode: ThemeMode) {
-    setDraftSettings((current) => ({
-      ...(current ?? settings),
-      themeMode: mode,
-    }));
-    setTheme(mode);
+    const next = { ...(draftSettings ?? catalog!.settings), themeMode: mode };
+    setDraftSettings(next);
+    updateSettingsLocal(next);
   }
 
   async function restore() {

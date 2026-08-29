@@ -73,7 +73,11 @@ export async function readCatalog(): Promise<Catalog> {
     })
   );
 
-  if (looksLikeUsdCatalog(parsed.products ?? []) || catalog.products.length !== rawCount) {
+  if (
+    looksLikeUsdCatalog(parsed.products ?? []) ||
+    catalog.products.length !== rawCount ||
+    parsed.settings?.themeMode === undefined
+  ) {
     await writeCatalog(catalog);
   }
 
