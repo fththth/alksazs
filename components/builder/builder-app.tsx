@@ -158,12 +158,14 @@ export function BuilderApp() {
                 <button
                   key={key}
                   type="button"
+                  title={item.label}
+                  aria-pressed={active}
                   onClick={() => {
                     setCategory(key);
                     setQuery("");
                   }}
                   className={cn(
-                    "flex min-w-0 items-center justify-center gap-1 rounded-full border px-1.5 py-1 text-[11px] leading-none transition sm:px-2 sm:text-xs",
+                    "flex min-h-9 min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full border px-1.5 py-2 text-[11px] leading-tight transition sm:px-2 sm:text-xs",
                     active ? "chip-active" : "chip-idle"
                   )}
                 >
